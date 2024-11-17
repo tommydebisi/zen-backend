@@ -1,0 +1,27 @@
+services:
+  # MongoDB Service
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  # Flask App Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zen-backend
+    ports:
+      - "5000:5000" # Expose Flask app on port 5000
+    environment:
+      FLASK_ENV: production # Set the Flask environment to production
+    env_file:
+      - .env
+    depends_on:
+      - mongo # Ensure MongoDB starts before the app
