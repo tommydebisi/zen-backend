@@ -1,0 +1,7 @@
+# flyctl launch added from .gitignore
+**/__pycache__
+**/data
+**/.env
+**/test.py
+**/setup3.png
+

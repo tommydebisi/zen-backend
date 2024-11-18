@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, make_response
 from app.extensions import init_app
-
 from app.config import config
 
-app = Flask(__name__)
-init_app(app)
+
+app: Flask = init_app()
 
 from flask import jsonify, make_response
 

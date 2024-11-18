@@ -32,9 +32,9 @@ cloudinary.config(
 
 # Logger setup
 logger = logging.getLogger(__name__)
-# dat
+app = Flask(__name__)
 
-def init_app(app: Flask):
+def init_app():
     # global database
     app.config.from_prefixed_env()
     # Initialize Flask extensions
@@ -105,3 +105,5 @@ def init_app(app: Flask):
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header, jwt_payload):
         return {"error": True, "message": "Token has been revoked"}, 401
+    
+    return app
