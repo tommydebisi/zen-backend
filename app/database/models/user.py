@@ -9,33 +9,33 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(BaseModel):
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
     email: str
-    password: str
-    first_name: str
-    last_name: str
+    Password: str
+    firstName: str
+    lastName: str
     created_at: Optional[datetime] = Field(default_factory=datetime.now)
     updated_at: Optional[datetime] = Field(default_factory=datetime.now)
-    date_of_birth: Optional[datetime] = None
-    street: Optional[str] = None
-    city: Optional[str] = None
-    postal_code: Optional[str] = None
-    phone_number: Optional[str] = None
+    date: Optional[datetime] = None
+    Address: Optional[str] = None
+    City: Optional[str] = None
+    PostalCode: Optional[str] = None
+    PhoneNumber: Optional[str] = None
 
     image_url: Optional[str] = None
 
     # Emergency Contact
-    emergency_first_name: Optional[str] = None
-    emergency_last_name: Optional[str] = None
-    emergency_relationship: Optional[str] = None
-    emergency_phone_number: Optional[str] = None
+    EmergencyFirstName: Optional[str] = None
+    EmergencyLastName: Optional[str] = None
+    EmergencyPhoneNumber: Optional[str] = None
+    Relationship: Optional[str] = None
 
     # Medical Information
-    has_allergies: Optional[bool] = None
-    allergy_details: Optional[str] = None
+    allergies: Optional[bool] = None
+    allergyDetails: Optional[str] = None
 
     # Archery Experience
-    previous_experience: Optional[bool] = None
-    experience_details: Optional[str] = None
-    interested_in_beginner_lessons: Optional[bool] = None
+    ArcheryExperience: Optional[bool] = None
+    DetailExperience: Optional[str] = None
+    BeginnersLesson: Optional[bool] = None
 
     # Member acknowledgement
     member_acknowledgement: Optional[bool] = None
@@ -50,11 +50,11 @@ class User(BaseModel):
 
     def set_password(self, password: str) -> None:
         """Set hashed password."""
-        self.password = generate_password_hash(password)
+        self.Password = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         """Check if password matches hashed password."""
-        return check_password_hash(self.password, password)
+        return check_password_hash(self.Password, password)
 
     def to_json(self) -> dict:
         """Convert model to JSON-compatible dictionary."""

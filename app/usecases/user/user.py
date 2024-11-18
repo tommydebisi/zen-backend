@@ -9,13 +9,15 @@ class UserUseCase:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
-    def register_user(self, data: Dict[str, Any]) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    def register_user(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """Register a new user."""
         user_data = User(**data)
-        user_data.set_password(data["password"])
+        user_data.set_password(data["Password"])
 
         if self.user_repo.get_by_email(user_data.email):
-            return False, "User already exists."
+            return False, {
+                "message": "User already exists."
+            }
 
         # Insert into database
         result_id = self.user_repo.create_user(user_data.to_json())
@@ -24,16 +26,21 @@ class UserUseCase:
         # Fetch the inserted record
         result_data = self.user_repo.get_by_id(result_id)
 
-        return True, "User registered successfully.", {
-            "user_id": str(result_data['_id']),
-            "email": result_data['email']
+        return True, {
+            "message": "User registered successfully.",
+            "data": {
+                "user_id": str(result_data['_id']),
+                "email": result_data['email']
+            }
         }
 
-    def login_user(self, email: str, password: str) -> Tuple[bool, str, Optional[Dict[str, str]]]:
+    def login_user(self, email: str, password: str) -> Tuple[bool, Optional[Dict[str, str]]]:
         """Authenticate and login a user."""
         user = self.user_repo.get_by_email(email)
         if not user:
-            return False, "User not found.", None
+            return False, {
+                "message": "User not found."
+            }
         
         user_data = User(**user)
 
@@ -44,9 +51,12 @@ class UserUseCase:
         # Generate JWT access token
         access_token = create_access_token(identity=str(user["_id"]))
         refresh_token = create_refresh_token(identity=str(user["_id"]))
-        return True, "Login successful.", {
-            "access": access_token,
-            "refresh": refresh_token
+        return True, {
+            "message": "User logged in successfully.",
+            "data": {
+                "access_token": access_token,
+                "refresh_token": refresh_token
+            }
         }
 
     def get_all_users(self):

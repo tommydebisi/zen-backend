@@ -18,25 +18,28 @@ def register():
         data: Dict = request.form.copy()
 
         email = data.get('email')
-        password = data.get('password')
+        password = data.get('Password')
 
         if not email or not password:
-            abort(400, 'Email and password are required')
+            abort(400, 'email and Password are required')
         if not validateEmail(email):
             abort(400, 'Invalid email address')
 
-        image_file = request.files.get('image')
-        if image_file:
-            upload_result = uploader.upload(image_file)
-            data["image_url"] = upload_result.get('secure_url')
+        # image_file = request.files.get('Passport')
+        # if image_file:
+        #     upload_result = uploader.upload(image_file)
+        #     data["image_url"] = upload_result.get('secure_url')
+
 
         # register user
         usecase: UserUseCase = auth_bp.user_use_case
-        success, message, result_data = usecase.register_user(data)
+        success, result_data = usecase.register_user(data)
         status_code = 201 if success else 400
 
+        if not success:
+            return jsonify({"error": not success, "message": result_data.get("message")}), status_code
 
-        return jsonify({"error": not success, "message": message, "data": result_data}), status_code
+        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), status_code
     except ValidationError as e:
         current_app.logger.error(f"Validation error: {e.json()}")
         abort(400, 'Invalid request data')
@@ -108,20 +111,20 @@ def login():
         data: Dict = request.get_json()
 
         email = data.get('email')
-        password = data.get('password')
+        password = data.get('Password')
 
         if not email or not password:
-            abort(400, 'Email and password are required')
+            abort(400, 'email and Password are required')
 
         # login user
         usecase: UserUseCase = auth_bp.user_use_case
-        success, message, tokens = usecase.login_user(email, password)
+        success, login_data = usecase.login_user(email, password)
         status_code = 200 if success else 400
 
         if not success:
-            return jsonify({"error": True, "message": message}), status_code
+            return jsonify({"error": True, "message": login_data.get("message")}), status_code
 
-        return jsonify({"error": False, "message": message, "tokens": tokens}), status_code
+        return jsonify({"error": False, "message": login_data.get("message"), "tokens": login_data.get("data")}), status_code
     except Exception as e:
         current_app.logger.error(f"Failed to login user: {str(e)}")
         abort(500, 'Failed to login user')
