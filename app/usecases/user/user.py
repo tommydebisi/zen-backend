@@ -1,4 +1,5 @@
 from app.database.repository.user import UserRepository
+from app.database.repository.subscription import SubscriptionRepository
 from app.database.models.user import User
 from flask_jwt_extended import create_access_token, create_refresh_token
 from typing import Optional, Tuple, Dict, Any
@@ -6,8 +7,9 @@ from bson import ObjectId
 
 
 class UserUseCase:
-    def __init__(self, user_repo: UserRepository):
+    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository):
         self.user_repo = user_repo
+        self.subscription_repo = subscription_repo
 
     def register_user(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """Register a new user."""
@@ -44,9 +46,18 @@ class UserUseCase:
         
         user_data = User(**user)
 
+        # check if user has a subscription
+        subscription = self.subscription_repo.get_by_user_id(str(user["_id"]))
+        if not subscription:
+            return False, {
+                "message": "Complete subscription to login."
+            }
+
         # Check if the provided password matches the stored hashed password
         if not user_data.check_password(password):
-            return False, "Incorrect password.", None
+            return False, {
+                "message": "Invalid password."
+            }
 
         # Generate JWT access token
         access_token = create_access_token(identity=str(user["_id"]))

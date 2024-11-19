@@ -64,17 +64,18 @@ def init_app():
     # initialize repositories and usecases
     db_instance = app.extensions['database']  # Ensure 'database' is added to extensions
 
+    # subscription repo and usecase
+    subscription_repo = SubscriptionRepository(db_instance)
+    subscription_use_case = SubscriptionUseCase(subscription_repo)
+    
     # user repo and usecase
     user_repo = UserRepository(db_instance)
-    user_use_case = UserUseCase(user_repo)
+    user_use_case = UserUseCase(user_repo, subscription_repo)
 
     # token repo and usecase
     token_repo = TokenRepository(db_instance)
     token_use_case = TokenUseCase(token_repo)
 
-    # subscription repo and usecase
-    subscription_repo = SubscriptionRepository(db_instance)
-    subscription_use_case = SubscriptionUseCase(subscription_repo)
 
     auth_bp.user_use_case = user_use_case
     auth_bp.token_use_case = token_use_case
