@@ -25,10 +25,10 @@ def register():
         if not validateEmail(email):
             abort(400, 'Invalid email address')
 
-        # image_file = request.files.get('Passport')
-        # if image_file:
-        #     upload_result = uploader.upload(image_file)
-        #     data["image_url"] = upload_result.get('secure_url')
+        image_file = request.files.get('Passport')
+        if image_file:
+            upload_result = uploader.upload(image_file)
+            data["image_url"] = upload_result.get('secure_url')
 
 
         # register user
