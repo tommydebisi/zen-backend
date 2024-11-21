@@ -20,6 +20,9 @@ class UserUseCase:
             return False, {
                 "message": "User already exists."
             }
+        
+        # create index for expiry date
+        self.user_repo.create_index()
 
         # Insert into database
         result_id = self.user_repo.create_user(user_data.to_json())
@@ -46,17 +49,18 @@ class UserUseCase:
         
         user_data = User(**user)
 
-        # check if user has a subscription
-        subscription = self.subscription_repo.get_by_user_id(str(user["_id"]))
-        if not subscription:
-            return False, {
-                "message": "Complete subscription to login."
-            }
 
         # Check if the provided password matches the stored hashed password
         if not user_data.check_password(password):
             return False, {
                 "message": "Invalid password."
+            }
+
+        # check if user has a subscription
+        subscription = self.subscription_repo.get_by_user_id(str(user["_id"]))
+        if not subscription:
+            return False, {
+                "message": "Complete subscription to login."
             }
 
         # Generate JWT access token
@@ -74,6 +78,31 @@ class UserUseCase:
         """Fetch all users."""
         return self.user_repo.get_all_users()
     
+    # get a user by id
+    def get_user(self, user_id: str):
+        """Get a user by Id"""
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            return True, {
+                "message": "User not found."
+            }
+        
+        # convert _id to string
+        user["_id"] = str(user["_id"])
+        user_data = User(**user)
+
+        # change to json
+        user_bson = user_data.to_bson()
+
+        # remove password
+        user_bson.pop("Password")
+        user_bson['_id'] = str(user_bson['_id'])
+
+        return True, {
+            "data": user_bson
+        }
+
+
     def refresh_token(self, identity: str) -> Tuple[str, str]:
         """Refresh JWT access token."""
         new_access_token = create_access_token(identity=identity)

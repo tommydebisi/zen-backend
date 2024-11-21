@@ -1,19 +1,29 @@
 from app.database.repository.subscription import SubscriptionRepository
+from app.database.repository.user import UserRepository
 from app.database.models.subscription import Subscription
 from bson import ObjectId
 from typing import Dict, Any, Optional, Tuple
 
 
 class SubscriptionUseCase:
-    def __init__(self, subscription_repo: SubscriptionRepository):
+    def __init__(self, subscription_repo: SubscriptionRepository, user_repo: UserRepository):
         self.subscription_repo = subscription_repo
+        self.user_repo = user_repo
 
     def create_subscription(self, data: Dict[str, Any]) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """Create a new subscription."""
         subscription_data = Subscription(**data)
 
+        # check if user exists 
+        user_data = self.user_repo.get_by_id(subscription_data.user_id)
+        if not user_data:
+            return False, "User not found."
+
         if self.subscription_repo.get_by_user_id(subscription_data.user_id):
             return False, "Subscription already exists."
+        
+        #  update user expiry date to none
+        self.user_repo.find_and_update_user({"_id": ObjectId(subscription_data.user_id)}, {"expiry_date": None})
         
         bson_data = subscription_data.to_bson()
 

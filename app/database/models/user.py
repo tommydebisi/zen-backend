@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from .objectid import PydanticObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -19,6 +19,7 @@ class User(BaseModel):
     City: Optional[str] = None
     PostalCode: Optional[str] = None
     PhoneNumber: Optional[str] = None
+    expiry_date: Optional[datetime] = datetime.now(timezone.utc) + timedelta(minutes=1)
 
     image_url: Optional[str] = None
 

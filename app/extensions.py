@@ -11,6 +11,7 @@ from app.usecases.token.token import TokenUseCase
 
 
 from app.v1.auth.auth_route import auth_bp
+from app.v1.user.user_route import user_bp
 from app.database.connection import mongo
 from app.database.base import Database  # Import Database class
 
@@ -64,12 +65,12 @@ def init_app():
     # initialize repositories and usecases
     db_instance = app.extensions['database']  # Ensure 'database' is added to extensions
 
-    # subscription repo and usecase
+    # repositories
     subscription_repo = SubscriptionRepository(db_instance)
-    subscription_use_case = SubscriptionUseCase(subscription_repo)
-    
-    # user repo and usecase
     user_repo = UserRepository(db_instance)
+    
+    # usecases
+    subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo)
     user_use_case = UserUseCase(user_repo, subscription_repo)
 
     # token repo and usecase
@@ -81,8 +82,11 @@ def init_app():
     auth_bp.token_use_case = token_use_case
     auth_bp.subscription_use_case = subscription_use_case
 
+    user_bp.user_use_case = user_use_case
+
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+    app.register_blueprint(user_bp, url_prefix='/api/v1/user')
 
     # jwt error handlers
     @jwt.expired_token_loader
