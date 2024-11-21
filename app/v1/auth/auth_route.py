@@ -129,17 +129,6 @@ def login():
         current_app.logger.error(f"Failed to login user: {str(e)}")
         abort(500, 'Failed to login user')
 
-@auth_bp.get('/users', strict_slashes=False)
-@jwt_required()
-def get_users():
-    try:
-        usecase: UserUseCase = auth_bp.user_use_case
-        users = usecase.get_all_users()
-        return jsonify({"error": False, "users": users}), 200
-    except Exception as e:
-        current_app.logger.error(f"Failed to fetch users: {str(e)}")
-        abort(500, 'Failed to fetch users')
-
 @auth_bp.get("/refresh", strict_slashes=False)
 @jwt_required(refresh=True)
 def refresh():

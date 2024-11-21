@@ -26,6 +26,7 @@ class UserRepository:
 
         # fetch the inserted record
         return str(result.inserted_id)
+
     
     def find_and_update_user(self, query: Dict[str, Any], data: Dict):
         """Find a user by query and update the record."""

@@ -20,9 +20,6 @@ class UserUseCase:
             return False, {
                 "message": "User already exists."
             }
-        
-        # create index for expiry date
-        self.user_repo.create_index()
 
         # Insert into database
         result_id = self.user_repo.create_user(user_data.to_json())
@@ -53,7 +50,8 @@ class UserUseCase:
         # Check if the provided password matches the stored hashed password
         if not user_data.check_password(password):
             return False, {
-                "message": "Invalid password."
+                "message": "Invalid email or password.",
+
             }
 
         # check if user has a subscription
