@@ -1,17 +1,22 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_mailman import Mail
+
 from pymongo.errors import ServerSelectionTimeoutError
 from app.database.repository.user import UserRepository
 from app.usecases.user.user import UserUseCase
 from app.database.repository.token import TokenRepository
+from app.usecases.token.token import TokenUseCase
 from app.database.repository.subscription import SubscriptionRepository
 from app.usecases.subscription.subscription import SubscriptionUseCase
-from app.usecases.token.token import TokenUseCase
+from app.usecases.contact_us.contact_us import ContactUsUseCase
+from app.database.repository.contact_us import ContactUsRepository
 
 
 from app.v1.auth.auth_route import auth_bp
 from app.v1.user.user_route import user_bp
+from app.v1.contact_us.contact_us_route import contact_us_bp
 from app.database.connection import mongo
 from app.database.base import Database  # Import Database class
 
@@ -23,6 +28,7 @@ import os
 # Initialize extensions
 jwt = JWTManager()
 cors = CORS()
+mail = Mail()
 
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -41,7 +47,7 @@ def init_app():
     # Initialize Flask extensions
     mongo.init_app(app)
     jwt.init_app(app)
-
+    mail.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
 
     # Configure logger
@@ -68,10 +74,12 @@ def init_app():
     # repositories
     subscription_repo = SubscriptionRepository(db_instance)
     user_repo = UserRepository(db_instance)
+    contact_us_repo = ContactUsRepository(mail)
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo)
     user_use_case = UserUseCase(user_repo, subscription_repo)
+    contact_us_use_case = ContactUsUseCase(contact_us_repo)
 
     # token repo and usecase
     token_repo = TokenRepository(db_instance)
@@ -81,12 +89,13 @@ def init_app():
     auth_bp.user_use_case = user_use_case
     auth_bp.token_use_case = token_use_case
     auth_bp.subscription_use_case = subscription_use_case
-
     user_bp.user_use_case = user_use_case
+    contact_us_bp.contact_us_use_case = contact_us_use_case
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(user_bp, url_prefix='/api/v1/user')
+    app.register_blueprint(contact_us_bp, url_prefix='/api/v1/contact')
 
     # jwt error handlers
     @jwt.expired_token_loader
