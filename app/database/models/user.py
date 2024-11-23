@@ -20,6 +20,7 @@ class User(BaseModel):
     PostalCode: Optional[str] = None
     PhoneNumber: Optional[str] = None
     expiry_date: Optional[datetime] = datetime.now(timezone.utc) + timedelta(minutes=1)
+    role: Optional[str] = "user"
 
     image_url: Optional[str] = None
 

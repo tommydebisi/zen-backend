@@ -21,6 +21,7 @@ from app.database.connection import mongo
 from app.database.base import Database  # Import Database class
 
 import logging
+from typing import Dict
 import cloudinary
 import os
 
@@ -78,7 +79,7 @@ def init_app():
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo)
-    user_use_case = UserUseCase(user_repo, subscription_repo)
+    user_use_case = UserUseCase(user_repo)
     contact_us_use_case = ContactUsUseCase(contact_us_repo)
 
     # token repo and usecase
@@ -119,5 +120,5 @@ def init_app():
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header, jwt_payload):
         return {"error": True, "message": "Token has been revoked"}, 401
-    
+
     return app
