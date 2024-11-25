@@ -6,12 +6,6 @@ from .objectid import PydanticObjectId
 from enum import Enum
 
 
-class PlanType(str, Enum):
-    ANNUAL = "Annual Membership"
-    MONTHLY = "Monthly Membership"
-    QUARTERLY = "Quarterly"
-    DAILY = "Walk-ins"
-
 
 class SubscriptionStatus(str, Enum):
     PENDING = "pending"
@@ -28,32 +22,23 @@ class SubscriptionStatus(str, Enum):
 class Subscription(BaseModel):
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
     user_id: PydanticObjectId = Field(None, alias="user_id")
+    plan_id: PydanticObjectId = Field(None, alias="plan_id")
     email: str
-    plan: PlanType
     start_date: datetime = Field(default_factory=datetime.now)
     end_date: Optional[datetime] = None
     status: SubscriptionStatus = SubscriptionStatus.ACTIVE
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
-    @field_validator("end_date", mode="before", check_fields=False)
-    def set_end_date(cls, v, values: Dict):
+
+    def set_end_date(self, values: Dict) -> datetime:
         start_date = values.get("start_date")
-        plan = values.get("plan")
+        duration: int = values.get("duration")
 
-        if not start_date or not plan:
-            raise ValueError("start_date and plan must be provided")
+        if not start_date or not duration:
+            raise ValueError("start_date and duration must be provided")
 
-        if plan == PlanType.ANNUAL:
-            return start_date + timedelta(days=365)
-        elif plan == PlanType.QUARTERLY:
-            return start_date + timedelta(days=90)
-        elif plan == PlanType.MONTHLY:
-            return start_date + timedelta(days=30)
-        elif plan == PlanType.DAILY:
-            return start_date + timedelta(days=1)
-        else:
-            raise ValueError(f"Unsupported plan type: {plan}")
+        self.end_date = start_date + timedelta(days=duration)
 
     def to_json(self) -> dict:
         """Convert model to JSON-compatible dictionary."""

@@ -1,5 +1,4 @@
-from flask import Blueprint
-from flask import abort, jsonify, request, current_app
+from flask import abort, jsonify, request, current_app, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from pydantic import ValidationError
 from app.utils.utils import validateEmail
@@ -89,18 +88,22 @@ def archery_conduct(user_id):
         current_app.logger.error(f"Failed to register user: {str(e)}")
         abort(500, 'Failed to register user')
 
-@auth_bp.put('/register/subscribe/<user_id>', strict_slashes=False)
-def subscribe(user_id):
+@auth_bp.put('/register/subscribe/<user_id>/plan/<plan_id>', strict_slashes=False)
+def subscribe(user_id, plan_id):
     try:
         data: Dict = request.get_json()
         data['user_id'] = user_id
+        data['plan_id'] = plan_id
 
         # register user subscription
         usecase: SubscriptionUseCase = auth_bp.subscription_use_case
-        success, message, result_data = usecase.create_subscription(data)
+        success, result_data = usecase.create_subscription(data)
         status_code = 200 if success else 400
 
-        return jsonify({"error": not success, "message": message, "data": result_data}), status_code
+        if not success:
+            return jsonify({"error": not success, "message": result_data.get("message")}), status_code
+
+        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), status_code
     except Exception as e:
         current_app.logger.error(f"Failed to register user: {str(e)}")
         abort(500, 'Failed to register user')

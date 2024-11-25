@@ -1,13 +1,19 @@
 from app.database.repository.user import UserRepository
+from app.database.repository.subscription import SubscriptionRepository
+from app.database.repository.plan import PlanRepository
 from app.database.models.user import User
+from app.database.models.subscription import Subscription
+from app.database.models.plan import Plan
 from flask_jwt_extended import create_access_token, create_refresh_token
 from typing import Optional, Tuple, Dict, Any
 from bson import ObjectId
 
 
 class UserUseCase:
-    def __init__(self, user_repo: UserRepository):
+    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository, plan_repo: PlanRepository):
         self.user_repo = user_repo
+        self.subscription_repo = subscription_repo
+        self.plan_repo = plan_repo
 
 
     def register_user(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Dict[str, Any]]]:
@@ -22,7 +28,6 @@ class UserUseCase:
 
         # Insert into database
         result_id = self.user_repo.create_user(user_data.to_json())
-        print(result_id)
 
         # Fetch the inserted record
         result_data = self.user_repo.get_by_id(result_id)
@@ -82,20 +87,28 @@ class UserUseCase:
             return False, {
                 "message": "User not found."
             }
-        
+        response_data = {}
+        subscription = self.subscription_repo.get_by_user_id(user_id)
+        if subscription:
+            subscription_data = Subscription(**subscription)
+            response_data["status"] = subscription_data.status
+            response_data["end_date"] = subscription_data.end_date
+
+            plan = self.plan_repo.get_by_id(subscription_data.plan_id)
+            plan_data = Plan(**plan)
+            response_data["plan"] = plan_data.newplan
+            response_data["benefits"] = plan_data.benefits
+            response_data["price"] = plan_data.Price
+
         # convert _id to string
         user["_id"] = str(user["_id"])
         user_data = User(**user)
+        response_data["fullName"] = user_data.firstName + " " + user_data.lastName
 
-        # change to json
-        user_bson = user_data.to_bson()
-
-        # remove password
-        user_bson.pop("Password")
-        user_bson['_id'] = str(user_bson['_id'])
 
         return True, {
-            "data": user_bson
+            "message": "User found.",
+            "data": response_data
         }
 
 

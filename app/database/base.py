@@ -14,7 +14,7 @@ class Database:
         """Retrieve a collection from the database."""
         return self.db[collection]
 
-    def get_all(self, collection: str) -> Cursor:
+    def get_all(self, collection: str) -> List[Dict[str, Any]]:
         """Retrieve all documents from a collection."""
         cursor = self.get_collection(collection).find()
         documents = list(cursor)

@@ -4,21 +4,34 @@ from flask_cors import CORS
 from flask_mailman import Mail
 
 from pymongo.errors import ServerSelectionTimeoutError
+
+# Import database connection
+from app.database.connection import mongo
+from app.database.base import Database
+
+# Import repositories
 from app.database.repository.user import UserRepository
-from app.usecases.user.user import UserUseCase
 from app.database.repository.token import TokenRepository
-from app.usecases.token.token import TokenUseCase
 from app.database.repository.subscription import SubscriptionRepository
+from app.database.repository.contact_us import ContactUsRepository
+from app.database.repository.plan import PlanRepository
+from app.database.repository.team import TeamRepository
+
+# Import usecases
+from app.usecases.user.user import UserUseCase
+from app.usecases.token.token import TokenUseCase
 from app.usecases.subscription.subscription import SubscriptionUseCase
 from app.usecases.contact_us.contact_us import ContactUsUseCase
-from app.database.repository.contact_us import ContactUsRepository
+from app.usecases.team.team import TeamUseCase
+from app.usecases.plan.plan import PlanUseCase
 
-
+# Import blueprints
 from app.v1.auth.auth_route import auth_bp
 from app.v1.user.user_route import user_bp
 from app.v1.contact_us.contact_us_route import contact_us_bp
-from app.database.connection import mongo
-from app.database.base import Database  # Import Database class
+from app.v1.team.team_route import team_bp
+from app.v1.plan.plan_route import plan_bp
+
 
 import logging
 from typing import Dict
@@ -49,7 +62,7 @@ def init_app():
     mongo.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    cors.init_app(app, resources={r"*": {"origins": "*"}})
 
     # Configure logger
     logging.basicConfig(level=logging.INFO)
@@ -75,28 +88,34 @@ def init_app():
     # repositories
     subscription_repo = SubscriptionRepository(db_instance)
     user_repo = UserRepository(db_instance)
+    token_repo = TokenRepository(db_instance)
     contact_us_repo = ContactUsRepository(mail)
+    plan_repo = PlanRepository(db_instance)
+    team_repo = TeamRepository(db_instance)
     
     # usecases
-    subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo)
-    user_use_case = UserUseCase(user_repo)
+    subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
+    user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo)
     contact_us_use_case = ContactUsUseCase(contact_us_repo)
-
-    # token repo and usecase
-    token_repo = TokenRepository(db_instance)
     token_use_case = TokenUseCase(token_repo)
+    plan_use_case = PlanUseCase(plan_repo)
+    team_use_case = TeamUseCase(team_repo)
 
-
+    # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
     auth_bp.token_use_case = token_use_case
     auth_bp.subscription_use_case = subscription_use_case
     user_bp.user_use_case = user_use_case
     contact_us_bp.contact_us_use_case = contact_us_use_case
+    team_bp.team_use_case = team_use_case
+    plan_bp.plan_use_case = plan_use_case
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(user_bp, url_prefix='/api/v1/user')
     app.register_blueprint(contact_us_bp, url_prefix='/api/v1/contact')
+    app.register_blueprint(team_bp, url_prefix='/api/v1/team')
+    app.register_blueprint(plan_bp, url_prefix='/api/v1/plan')
 
     # jwt error handlers
     @jwt.expired_token_loader
