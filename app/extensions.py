@@ -62,7 +62,9 @@ def init_app():
     mongo.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-    cors.init_app(app, resources={r"*": {"origins": "*"}})
+    cors.init_app(app, resources={r"/*": {"origins": [
+        "http://localhost:3000"
+    ]}})
 
     # Configure logger
     logging.basicConfig(level=logging.INFO)
