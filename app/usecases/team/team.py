@@ -1,7 +1,8 @@
-from app.database.repository.team import TeamRepository
+from pymongo.errors import PyMongoError
+from app.database import TeamRepository
 from app.database.models.team import Team
 from bson import ObjectId
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple
 from datetime import datetime
 
 class TeamUseCase:
@@ -58,17 +59,38 @@ class TeamUseCase:
 
     def update_team(self, team_id: str, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Update a team."""
-        # update the updated_at field
-        data.update({"updated_at": datetime.now()})
+        try:
+            # update the updated_at field
+            data.update({"updated_at": datetime.now()})
 
-        self.team_repo.find_and_update_team({"_id": ObjectId(team_id)}, data)
-        return True, {
-            "message": "Team Member updated successfully."
-        }
+            result = self.team_repo.find_and_update_team({"_id": ObjectId(team_id)}, data)
+            # Check if the team exists
+            if result.matched_count == 0:
+                return False, {"message": "Team Member not found."}
+
+            # Check if any changes were made
+            if result.modified_count == 0:
+                return False, {
+                    "message": "No changes made to the team Member.",
+                    "status": 304
+                    }
+            return True, {
+                "message": "Team Member updated successfully."
+            }
+        except PyMongoError as e:
+            raise RuntimeError(f"Database error during team update: {str(e)}")
 
     def delete_team(self, team_id: str) -> Tuple[bool, Dict[str, Any]]:
         """Delete a team."""
-        self.team_repo.find_and_delete_team({"_id": ObjectId(team_id)})
-        return True, {
-            "message": "Team Member deleted successfully."
-        }
+        try:
+            result = self.team_repo.find_and_delete_team({"_id": ObjectId(team_id)})
+
+            if result.deleted_count == 0:
+                return False, {
+                    "message": "Team Member not found"
+                }
+            return True, {
+                "message": "Team Member deleted successfully."
+            }
+        except PyMongoError as e:
+            raise RuntimeError(f"Database error during team deletion: {str(e)}")

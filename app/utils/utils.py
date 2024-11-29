@@ -1,6 +1,6 @@
 import re
 from bson import ObjectId
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def validateEmail(email: str) -> bool:

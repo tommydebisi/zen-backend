@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, jsonify, request, current_app
-from flask_jwt_extended import jwt_required
-from app.usecases.team.team import TeamUseCase
+from app.usecases import TeamUseCase
+from app.utils.decorators import admin_required
+
 from typing import Dict
 from cloudinary.uploader import upload
 
@@ -8,6 +9,7 @@ team_bp = Blueprint('team', __name__)
 
 
 @team_bp.post('/create', strict_slashes=False)
+@admin_required()
 def create_team():
     try:
         data: Dict = request.form.copy()
@@ -21,6 +23,11 @@ def create_team():
         # create team
         usecase: TeamUseCase = team_bp.team_use_case
         success, resp_data = usecase.create_team(data)
+        if not success:
+            return jsonify({
+                "error": not success,
+                "message": resp_data.get("message"),
+            }), 400
 
         return jsonify({
                 "error": not success,
@@ -34,10 +41,17 @@ def create_team():
 
 
 @team_bp.get('/<team_id>', strict_slashes=False)
+@admin_required()
 def get_team(team_id):
     try:
         usecase: TeamUseCase = team_bp.team_use_case
         success, resp_data = usecase.get_team_by_id(team_id)
+
+        if not success:
+            return jsonify({
+                "error": not success,
+                "message": resp_data.get("message"),
+            }), 404
 
         return jsonify({
                 "error": not success,
@@ -72,6 +86,7 @@ def get_all_teams():
         abort(500, 'Failed to get all teams')
 
 @team_bp.put('/update/<team_id>', strict_slashes=False)
+@admin_required()
 def update_team(team_id):
     try:
         data: Dict = request.form.copy()
@@ -86,26 +101,42 @@ def update_team(team_id):
         usecase: TeamUseCase = team_bp.team_use_case
         success, resp_data = usecase.update_team(team_id, data)
 
+        if not success:
+            return jsonify({
+                "error": not success,
+                "message": resp_data.get("message"),
+            }), resp_data.get("status", 404)
+
         return jsonify({
                 "error": not success,
                 "message": resp_data.get("message"),
             }), 200
-
+    except RuntimeError as e:
+        current_app.logger.error(f"Failed to update team: {str(e)}")
+        return jsonify({"error": True, "message": "Internal server error"}), 500
     except Exception as e:
         current_app.logger.error(f"Failed to update team: {str(e)}")
         abort(500, 'Failed to update team')
 
 @team_bp.delete('/delete/<team_id>', strict_slashes=False)
+@admin_required()
 def delete_team(team_id):
     try:
         usecase: TeamUseCase = team_bp.team_use_case
         success, resp_data = usecase.delete_team(team_id)
+        if not success:
+            return jsonify({
+                "error": not success,
+                "message": resp_data.get("message"),
+            }), 404
 
         return jsonify({
                 "error": not success,
                 "message": resp_data.get("message"),
             }), 200
-
+    except RuntimeError as e:
+        current_app.logger.error(f"Failed to delete team: {str(e)}")
+        return jsonify({"error": True, "message": "Internal server error"}), 500
     except Exception as e:
         current_app.logger.error(f"Failed to delete team: {str(e)}")
         abort(500, 'Failed to delete team')

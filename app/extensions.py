@@ -10,27 +10,33 @@ from app.database.connection import mongo
 from app.database.base import Database
 
 # Import repositories
-from app.database.repository.user import UserRepository
-from app.database.repository.token import TokenRepository
-from app.database.repository.subscription import SubscriptionRepository
-from app.database.repository.contact_us import ContactUsRepository
-from app.database.repository.plan import PlanRepository
-from app.database.repository.team import TeamRepository
+from app.database import (
+    UserRepository,
+    SubscriptionRepository,
+    TokenRepository,
+    ContactUsRepository,
+    TeamRepository,
+    PlanRepository
+)
 
 # Import usecases
-from app.usecases.user.user import UserUseCase
-from app.usecases.token.token import TokenUseCase
-from app.usecases.subscription.subscription import SubscriptionUseCase
-from app.usecases.contact_us.contact_us import ContactUsUseCase
-from app.usecases.team.team import TeamUseCase
-from app.usecases.plan.plan import PlanUseCase
+from app.usecases import (
+    SubscriptionUseCase,
+    UserUseCase,
+    TokenUseCase,
+    ContactUsUseCase,
+    PlanUseCase,
+    TeamUseCase
+)
 
 # Import blueprints
-from app.v1.auth.auth_route import auth_bp
-from app.v1.user.user_route import user_bp
-from app.v1.contact_us.contact_us_route import contact_us_bp
-from app.v1.team.team_route import team_bp
-from app.v1.plan.plan_route import plan_bp
+from app.v1 import (
+    auth_bp,
+    user_bp,
+    contact_us_bp,
+    team_bp,
+    plan_bp
+)
 
 
 import logging

@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import abort, jsonify, request, current_app
-from app.usecases.contact_us.contact_us import ContactUsUseCase
+from app.usecases import ContactUsUseCase
 from typing import Dict
 
 contact_us_bp = Blueprint('contact_us', __name__)

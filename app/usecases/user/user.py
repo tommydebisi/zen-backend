@@ -1,6 +1,8 @@
-from app.database.repository.user import UserRepository
-from app.database.repository.subscription import SubscriptionRepository
-from app.database.repository.plan import PlanRepository
+from app.database import (
+    UserRepository,
+    SubscriptionRepository,
+    PlanRepository,
+)
 from app.database.models.user import User
 from app.database.models.subscription import Subscription
 from app.database.models.plan import Plan
@@ -95,10 +97,11 @@ class UserUseCase:
             response_data["end_date"] = subscription_data.end_date
 
             plan = self.plan_repo.get_by_id(subscription_data.plan_id)
-            plan_data = Plan(**plan)
-            response_data["plan"] = plan_data.newplan
-            response_data["benefits"] = plan_data.benefits
-            response_data["price"] = plan_data.Price
+            if plan:
+                plan_data = Plan(**plan)
+                response_data["plan"] = plan_data.newplan
+                response_data["benefits"] = plan_data.benefits
+                response_data["price"] = plan_data.Price
 
         # convert _id to string
         user["_id"] = str(user["_id"])

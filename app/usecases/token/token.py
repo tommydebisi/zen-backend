@@ -1,4 +1,4 @@
-from app.database.repository.token import TokenRepository
+from app.database import TokenRepository
 from app.database.models.token_blocklist import TokenBlocklist
 from typing import Dict, Any
 

@@ -1,6 +1,4 @@
-from app.database.repository.subscription import SubscriptionRepository
-from app.database.repository.user import UserRepository
-from app.database.repository.plan import PlanRepository
+from app.database import SubscriptionRepository, UserRepository, PlanRepository
 from app.database.models.subscription import Subscription
 from bson import ObjectId
 from typing import Dict, Any, Optional, Tuple

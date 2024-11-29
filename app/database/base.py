@@ -1,9 +1,7 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pymongo.database import Database as PyMongoDatabase
 from pymongo.results import InsertOneResult, InsertManyResult, UpdateResult, DeleteResult
 from pymongo.collection import Collection
-from pymongo.cursor import Cursor
-from bson import json_util
 from app.utils.utils import serialize_document
 
 class Database:

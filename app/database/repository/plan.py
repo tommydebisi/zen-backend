@@ -10,6 +10,10 @@ class PlanRepository:
     def get_by_id(self, plan_id: str):
         """Fetch a plan by ID."""
         return self.db.get_one(Plan.__name__, {"_id": ObjectId(plan_id)})
+    
+    def get_by_newplan(self, newplan: str):
+        """Fetch a plan by name."""
+        return self.db.get_one(Plan.__name__, {"newplan": newplan})
 
     def get_all_plans(self):
         """Fetch all plans."""

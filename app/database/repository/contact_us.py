@@ -1,7 +1,5 @@
-from app.database.base import Database
 from app.database.models.contact_us import ContactUs
 from flask_mailman import EmailMessage, Mail
-from typing import Dict, Any
 
 
 class ContactUsRepository:

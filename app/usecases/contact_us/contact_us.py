@@ -1,7 +1,7 @@
 from pydantic import ValidationError
-from app.database.repository.contact_us import ContactUsRepository
+from app.database import ContactUsRepository
 from app.database.models.contact_us import ContactUs
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict
 
 class ContactUsUseCase:
     def __init__(self, contact_us_repo: ContactUsRepository):

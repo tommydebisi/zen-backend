@@ -18,7 +18,7 @@ def page_not_found(error):
 def internal_server_error(error):
     return make_response(jsonify({
         'error': True,
-        'message': 'Internal server error'
+        'message': getattr(error, 'description', 'Internal server error')
     }), 500)
 
 @app.errorhandler(400)

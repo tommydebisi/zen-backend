@@ -2,9 +2,11 @@ from flask import abort, jsonify, request, current_app, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from pydantic import ValidationError
 from app.utils.utils import validateEmail
-from app.usecases.user.user import UserUseCase
-from app.usecases.token.token import TokenUseCase
-from app.usecases.subscription.subscription import SubscriptionUseCase
+from app.usecases import (
+    UserUseCase,
+    SubscriptionUseCase,
+    TokenUseCase
+)
 from typing import Dict
 import cloudinary.uploader as uploader
 
@@ -19,10 +21,15 @@ def register():
         email = data.get('email')
         password = data.get('Password')
 
+        #  Dont permit user to register with admin role
+        if data.get('role') == 'admin':
+            abort(400, 'Invalid role')
+
         if not email or not password:
             abort(400, 'email and Password are required')
         if not validateEmail(email):
             abort(400, 'Invalid email address')
+
 
         image_file = request.files.get('Passport')
         if image_file:
