@@ -89,7 +89,7 @@ def get_all_teams():
 @admin_required()
 def update_team(team_id):
     try:
-        data: Dict = request.form.copy()
+        data: Dict = request.form.to_dict(flat=True)
 
         # upload image
         image_file = request.files.get('image')

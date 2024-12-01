@@ -46,3 +46,9 @@ class Database:
     def delete_many(self, collection: str, query: Dict[str, Any]) -> DeleteResult:
         """Delete multiple documents from a collection based on a query."""
         return self.get_collection(collection).delete_many(query)
+
+    def sort_by(self, collection: str, key: str, order: int) -> List[Dict[str, Any]]:
+        """Sort documents in a collection by a key."""
+        cursor = self.get_collection(collection).find().sort(key, order)
+        documents = list(cursor)
+        return [serialize_document(doc) for doc in documents]

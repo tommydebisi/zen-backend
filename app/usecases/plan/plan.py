@@ -48,7 +48,19 @@ class PlanUseCase:
 
     def get_plan_by_id(self, plan_id: str) -> Optional[Dict[str, Any]]:
         """Fetch a plan by ID."""
-        return self.plan_repo.get_by_id(plan_id)
+        plan = self.plan_repo.get_by_id(plan_id)
+        if not plan:
+            return {
+                "message": "Plan not found."
+            }
+
+        # stringify the ObjectId
+        plan['_id'] = str(plan['_id'])
+
+        return {
+            "message": "Plan found.",
+            "data": plan
+        }
 
     def update_plan(self, plan_id: str, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """

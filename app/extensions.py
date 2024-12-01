@@ -16,7 +16,8 @@ from app.database import (
     TokenRepository,
     ContactUsRepository,
     TeamRepository,
-    PlanRepository
+    PlanRepository,
+    RecordRepository
 )
 
 # Import usecases
@@ -26,7 +27,8 @@ from app.usecases import (
     TokenUseCase,
     ContactUsUseCase,
     PlanUseCase,
-    TeamUseCase
+    TeamUseCase,
+    RecordUseCase
 )
 
 # Import blueprints
@@ -35,7 +37,8 @@ from app.v1 import (
     user_bp,
     contact_us_bp,
     team_bp,
-    plan_bp
+    plan_bp,
+    record_bp
 )
 
 
@@ -69,7 +72,8 @@ def init_app():
     jwt.init_app(app)
     mail.init_app(app)
     cors.init_app(app, resources={r"/*": {"origins": [
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "*"
     ]}})
 
     # Configure logger
@@ -100,6 +104,7 @@ def init_app():
     contact_us_repo = ContactUsRepository(mail)
     plan_repo = PlanRepository(db_instance)
     team_repo = TeamRepository(db_instance)
+    record_repo = RecordRepository(db_instance)
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
@@ -108,6 +113,7 @@ def init_app():
     token_use_case = TokenUseCase(token_repo)
     plan_use_case = PlanUseCase(plan_repo)
     team_use_case = TeamUseCase(team_repo)
+    record_use_case = RecordUseCase(record_repo)
 
     # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
@@ -117,6 +123,7 @@ def init_app():
     contact_us_bp.contact_us_use_case = contact_us_use_case
     team_bp.team_use_case = team_use_case
     plan_bp.plan_use_case = plan_use_case
+    record_bp.record_use_case = record_use_case
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
@@ -124,6 +131,7 @@ def init_app():
     app.register_blueprint(contact_us_bp, url_prefix='/api/v1/contact')
     app.register_blueprint(team_bp, url_prefix='/api/v1/team')
     app.register_blueprint(plan_bp, url_prefix='/api/v1/plan')
+    app.register_blueprint(record_bp, url_prefix='/api/v1/record')
 
     # jwt error handlers
     @jwt.expired_token_loader
