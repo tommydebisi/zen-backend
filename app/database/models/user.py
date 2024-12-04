@@ -68,3 +68,18 @@ class User(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
+
+
+class UserUpdate(BaseModel):
+    # Member acknowledgement
+    member_acknowledgement: Optional[bool] = None
+
+    # Consent for Archery Range Rules & Code of Conduct
+    acknowledge_risks: Optional[bool] = None
+    consent_to_media: Optional[bool] = None
+    initials: Optional[str] = None
+
+    def to_bson(self) -> dict:
+        """Convert model to BSON-compatible dictionary for MongoDB."""
+        data = self.model_dump(by_alias=True, exclude_none=True)
+        return data

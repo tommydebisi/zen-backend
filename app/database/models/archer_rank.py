@@ -3,12 +3,20 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict
 from .objectid import PydanticObjectId
 from datetime import datetime
+from enum import Enum
 
-class Team(BaseModel):
+
+class ArcherRankType(str, Enum):
+    RECURVE = "Recurve"
+    COMPOUND = "Compound"
+    BAREBOW = "Barebow"
+    GENERAL = "General"
+
+class ArcherRank(BaseModel):
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
-    name: str
-    position: str
-    context: str
+    full_name: str
+    point: int
+    type: ArcherRankType
     image_url: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
@@ -23,12 +31,10 @@ class Team(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
+    
 
-
-class TeamUpdate(BaseModel):
-    position: Optional[str] = None
-    context: Optional[str] = None
-    image_url: Optional[str] = None
+class ArcherRankUpdate(BaseModel):
+    point: int
     updated_at: datetime = Field(default_factory=datetime.now)
     
     def to_bson(self) -> dict:

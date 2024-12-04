@@ -25,3 +25,18 @@ class Record(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
+    
+
+class RecordUpdate(BaseModel):
+    competition: Optional[str] = None
+    location: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    rank: Optional[str] = None
+    image_url: Optional[str] = None
+    updated_at: datetime = Field(default_factory=datetime.now)
+    
+    def to_bson(self) -> Dict:
+        """Convert model to BSON-compatible dictionary for MongoDB."""
+        data = self.model_dump(by_alias=True, exclude_none=True)
+        return data

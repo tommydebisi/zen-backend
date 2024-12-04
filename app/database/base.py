@@ -52,3 +52,13 @@ class Database:
         cursor = self.get_collection(collection).find().sort(key, order)
         documents = list(cursor)
         return [serialize_document(doc) for doc in documents]
+    
+    def filter_and_sort_by(self, collection: str, query: Dict[str, Any], key: str, order: int) -> List[Dict[str, Any]]:
+        """Filter and sort documents in a collection by a key."""
+        cursor = self.get_collection(collection).aggregate([
+            {"$match": query},
+            {"$sort": {key: order}},
+            {"$project": {"created_at": 0, "updated_at": 0}}
+        ])
+        documents = list(cursor)
+        return [serialize_document(doc) for doc in documents]

@@ -17,7 +17,8 @@ from app.database import (
     ContactUsRepository,
     TeamRepository,
     PlanRepository,
-    RecordRepository
+    RecordRepository,
+    ArcherRankRepository
 )
 
 # Import usecases
@@ -28,7 +29,8 @@ from app.usecases import (
     ContactUsUseCase,
     PlanUseCase,
     TeamUseCase,
-    RecordUseCase
+    RecordUseCase,
+    ArcherRankUseCase
 )
 
 # Import blueprints
@@ -38,7 +40,8 @@ from app.v1 import (
     contact_us_bp,
     team_bp,
     plan_bp,
-    record_bp
+    record_bp,
+    archer_rank_bp
 )
 
 
@@ -105,6 +108,7 @@ def init_app():
     plan_repo = PlanRepository(db_instance)
     team_repo = TeamRepository(db_instance)
     record_repo = RecordRepository(db_instance)
+    archer_rank_repo = ArcherRankRepository(db_instance)
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
@@ -114,6 +118,7 @@ def init_app():
     plan_use_case = PlanUseCase(plan_repo)
     team_use_case = TeamUseCase(team_repo)
     record_use_case = RecordUseCase(record_repo)
+    archer_rank_use_case = ArcherRankUseCase(archer_rank_repo)
 
     # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
@@ -124,6 +129,7 @@ def init_app():
     team_bp.team_use_case = team_use_case
     plan_bp.plan_use_case = plan_use_case
     record_bp.record_use_case = record_use_case
+    archer_rank_bp.archer_rank_use_case = archer_rank_use_case
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
@@ -132,6 +138,7 @@ def init_app():
     app.register_blueprint(team_bp, url_prefix='/api/v1/team')
     app.register_blueprint(plan_bp, url_prefix='/api/v1/plan')
     app.register_blueprint(record_bp, url_prefix='/api/v1/record')
+    app.register_blueprint(archer_rank_bp, url_prefix='/api/v1/rank')
 
     # jwt error handlers
     @jwt.expired_token_loader

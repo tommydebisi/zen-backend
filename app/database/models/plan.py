@@ -23,3 +23,16 @@ class Plan(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
+    
+
+class PlanUpdate(BaseModel):
+    newplan: Optional[str] = None
+    Price: Optional[int] = None
+    benefits: Optional[List[str]] = None
+    duration: Optional[int] = None
+    updated_at: datetime = Field(default_factory=datetime.now)
+    
+    def to_bson(self) -> dict:
+        """Convert model to BSON-compatible dictionary for MongoDB."""
+        data = self.model_dump(by_alias=True, exclude_none=True)
+        return data
