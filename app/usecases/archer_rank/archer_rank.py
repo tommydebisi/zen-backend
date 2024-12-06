@@ -41,10 +41,10 @@ class ArcherRankUseCase:
     def get_all_archer_ranks(self) -> Tuple[bool, Dict[str, Any]]:
         """Fetch all archer ranks."""
         # filter and sort archer rank by General, Recurve, Compound, and Barebow
-        general_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "General"}, "point", 1)
-        recurve_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Recurve"}, "point", 1)
-        compound_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Compound"}, "point", 1)
-        barebow_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Barebow"}, "point", 1)
+        general_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "General"}, "point", -1)
+        recurve_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Recurve"}, "point", -1)
+        compound_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Compound"}, "point", -1)
+        barebow_archer_ranks =  self.archer_rank_repo.filter_and_sort_by({"type": "Barebow"}, "point", -1)
 
         return True, {
             "message": "Archer ranks found.",

@@ -96,4 +96,4 @@ class RecordUseCase:
                 "message": "Record deleted successfully."
             }
         except PyMongoError as e:
-            raise RuntimeError("An error occurred while deleting the record: {str(e)}")
+            raise RuntimeError(f"An error occurred while deleting the record: {str(e)}")
