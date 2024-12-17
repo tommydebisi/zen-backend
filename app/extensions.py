@@ -41,7 +41,8 @@ from app.v1 import (
     team_bp,
     plan_bp,
     record_bp,
-    archer_rank_bp
+    archer_rank_bp,
+    subscription_bp
 )
 
 
@@ -130,6 +131,8 @@ def init_app():
     plan_bp.plan_use_case = plan_use_case
     record_bp.record_use_case = record_use_case
     archer_rank_bp.archer_rank_use_case = archer_rank_use_case
+    subscription_bp.subscription_use_case = subscription_use_case
+
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
@@ -139,6 +142,7 @@ def init_app():
     app.register_blueprint(plan_bp, url_prefix='/api/v1/plan')
     app.register_blueprint(record_bp, url_prefix='/api/v1/record')
     app.register_blueprint(archer_rank_bp, url_prefix='/api/v1/rank')
+    app.register_blueprint(subscription_bp, url_prefix='/api/v1/subscription')
 
     # jwt error handlers
     @jwt.expired_token_loader

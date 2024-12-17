@@ -5,3 +5,4 @@ from app.v1.team.team_route import team_bp
 from app.v1.plan.plan_route import plan_bp
 from app.v1.record.record_route import record_bp
 from app.v1.archer_rank.archer_rank_route import archer_rank_bp
+from app.v1.subscription.subscription_route import subscription_bp

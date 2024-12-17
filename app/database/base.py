@@ -62,3 +62,18 @@ class Database:
         ])
         documents = list(cursor)
         return [serialize_document(doc) for doc in documents]
+
+    def aggregate(self, collection: str, pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Perform an aggregation on the specified collection using a custom pipeline.
+
+        Args:
+            collection (str): The name of the collection to aggregate.
+            pipeline (List[Dict[str, Any]]): The aggregation pipeline.
+
+        Returns:
+            List[Dict[str, Any]]: The aggregated result.
+        """
+        cursor = self.get_collection(collection).aggregate(pipeline)
+        documents = list(cursor)
+        return [serialize_document(doc) for doc in documents]

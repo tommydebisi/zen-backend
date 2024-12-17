@@ -50,3 +50,8 @@ class Subscription(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
+    
+    @classmethod
+    def from_bson(cls, data: Dict) -> "Subscription":
+        """Create a model instance from a BSON dictionary."""
+        return cls(**data)

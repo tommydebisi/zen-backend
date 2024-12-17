@@ -60,6 +60,21 @@ class SubscriptionUseCase:
     def get_all_subscriptions(self) -> Optional[Dict[str, Any]]:
         """Fetch all subscriptions."""
         return self.subscription_repo.get_all_subscriptions()
+    
+    def get_all_subscriptions_with_user_details(self) -> Tuple[bool, Dict[str, Any]]:
+        """Fetch all subscriptions with user details."""
+        subscriptions = self.subscription_repo.get_subscriptions_with_user_details()
+        print(subscriptions)
+        if len(subscriptions) < 1:
+            return False, {
+                "message": "Subscriptions not found."
+            }
+        
+        return True, {
+            "message": "Subscriptions found.",
+            "data": subscriptions
+        }
+
 
     def get_subscription_by_id(self, subscription_id: str) -> Optional[Dict[str, Any]]:
         """Fetch a subscription by ID."""
