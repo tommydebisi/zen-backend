@@ -34,8 +34,6 @@ class SubscriptionUseCase:
                 "message": "User already has an active subscription."
             }
         
-        #  update user expiry date to none
-        self.user_repo.find_and_update_user({"_id": ObjectId(subscription_data.user_id)}, {"expiry_date": None})
         
         subscription_data.set_end_date(values={
             "start_date": subscription_data.start_date,
