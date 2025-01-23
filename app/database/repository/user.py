@@ -6,7 +6,6 @@ from typing import Dict, Any
 class UserRepository:
     def __init__(self, db: Database):
         self.db = db
-        self.db.db[User.__name__].create_index("expiry_date", expireAfterSeconds=0)
 
     def get_by_email(self, email: str):
         """Fetch a user by email."""
