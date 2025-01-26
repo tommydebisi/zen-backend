@@ -6,3 +6,4 @@ from app.usecases.plan.plan import PlanUseCase
 from app.usecases.team.team import TeamUseCase
 from app.usecases.record.record import RecordUseCase
 from app.usecases.archer_rank.archer_rank import ArcherRankUseCase
+from app.usecases.payment.payment_history import PaymentHistoryUseCase

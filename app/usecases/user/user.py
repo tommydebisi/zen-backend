@@ -2,20 +2,23 @@ from app.database import (
     UserRepository,
     SubscriptionRepository,
     PlanRepository,
+    ArcherRankRepository,
 )
-from app.database.models.user import User
+from app.database.models.user import User, UserUpdate
 from app.database.models.subscription import Subscription
 from app.database.models.plan import Plan
 from flask_jwt_extended import create_access_token, create_refresh_token
+from app.services.paystack.setup import paystack
 from typing import Optional, Tuple, Dict, Any
 from bson import ObjectId
 
 
 class UserUseCase:
-    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository, plan_repo: PlanRepository):
+    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository, plan_repo: PlanRepository, rank_repo: ArcherRankRepository):
         self.user_repo = user_repo
         self.subscription_repo = subscription_repo
         self.plan_repo = plan_repo
+        self.rank_repo = rank_repo
 
 
     def register_user(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Dict[str, Any]]]:
@@ -28,17 +31,36 @@ class UserUseCase:
                 "message": "User already exists."
             }
 
-        # Insert into database
-        result_id = self.user_repo.create_user(user_data.to_json())
+        # create a customer account in paystack
+        response: Dict = paystack.customer.create(
+            first_name=user_data.firstName,
+            last_name=user_data.lastName,
+            email=user_data.email,
+            phone=user_data.PhoneNumber,
+        )
 
-        # Fetch the inserted record
+        if not response.get('status'):
+            return False, {
+                "message": response.get('message'),
+            }
+        
+        response_data: Dict = response.get('data')
+
+        # # update the current user model with the necessary codes from paystack
+        user_data.customer_code = response_data.get('customer_code')
+        user_data.status = "Terms_Condition"
+
+        # Insert into database
+        result_id = self.user_repo.create_user(user_data.to_bson())
+
+        # # Fetch the inserted record
         result_data = self.user_repo.get_by_id(result_id)
 
         return True, {
             "message": "User registered successfully.",
             "data": {
                 "user_id": str(result_data['_id']),
-                "email": result_data['email']
+                "email": result_data['email'],
             }
         }
 
@@ -73,7 +95,9 @@ class UserUseCase:
             "message": "User logged in successfully.",
             "data": {
                 "access_token": access_token,
-                "refresh_token": refresh_token
+                "refresh_token": refresh_token,
+                "status": user_data.status,
+                "plan_id": str(user_data.plan_id)
             }
         }
 
@@ -90,6 +114,11 @@ class UserUseCase:
                 "message": "User not found."
             }
         response_data = {}
+
+        # get user's total points
+        points = self.rank_repo.find_all_points_by_email(user.get('email'))[0].get('total_points', 0)
+        response_data["points"] = points
+
         subscription = self.subscription_repo.get_by_user_id(user_id)
         if subscription:
             subscription_data = Subscription(**subscription)
@@ -122,5 +151,21 @@ class UserUseCase:
     
     def update_user_with_id(self, user_id: str, data: Dict[str, Any]) -> Tuple[bool, str]:
         """Update a user."""
-        self.user_repo.find_and_update_user({"_id": ObjectId(user_id)}, data)
+        user_update_data = UserUpdate(**data)
+
+        # get the user
+        user_data = self.user_repo.get_by_id(user_id)
+        if user_data is None:
+            return False, "User does not exist"
+        
+        if data.get('route') == 'acknowledgment':
+            if user_data.get('status') != 'Terms_Condition':
+                return False, "User already filled or not allowed to fill form"
+            user_update_data.status = 'Waiver'
+        elif data.get('route') == 'conduct':
+            if user_data.get('status') != 'Waiver':
+                return False, "User already filled or not allowed to fill form"
+            user_update_data.status = 'payment'
+
+        self.user_repo.find_and_update_user({"_id": ObjectId(user_id)}, user_update_data.to_bson())
         return True, "User updated successfully."

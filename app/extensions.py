@@ -18,7 +18,8 @@ from app.database import (
     TeamRepository,
     PlanRepository,
     RecordRepository,
-    ArcherRankRepository
+    ArcherRankRepository,
+    PaymentHistoryRepository
 )
 
 # Import usecases
@@ -30,7 +31,8 @@ from app.usecases import (
     PlanUseCase,
     TeamUseCase,
     RecordUseCase,
-    ArcherRankUseCase
+    ArcherRankUseCase,
+    PaymentHistoryUseCase
 )
 
 # Import blueprints
@@ -42,13 +44,16 @@ from app.v1 import (
     plan_bp,
     record_bp,
     archer_rank_bp,
-    subscription_bp
+    subscription_bp,
+    payment_bp,
+    payment_history_bp
 )
 
 
 import logging
 from typing import Dict
 import cloudinary
+from app.config import config
 import os
 
 
@@ -58,9 +63,9 @@ cors = CORS()
 mail = Mail()
 
 cloudinary.config(
-    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.getenv('CLOUDINARY_API_KEY'),
-    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+    cloud_name=config.CLOUD_NAME,
+    api_key=config.CLOUDINARY_API_KEY,
+    api_secret=config.CLOUDINARY_API_SECRET,
     secure=True
 )
 
@@ -110,16 +115,18 @@ def init_app():
     team_repo = TeamRepository(db_instance)
     record_repo = RecordRepository(db_instance)
     archer_rank_repo = ArcherRankRepository(db_instance)
+    payment_history_repo = PaymentHistoryRepository(db_instance)
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
-    user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo)
+    user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo, archer_rank_repo)
     contact_us_use_case = ContactUsUseCase(contact_us_repo)
     token_use_case = TokenUseCase(token_repo)
     plan_use_case = PlanUseCase(plan_repo)
     team_use_case = TeamUseCase(team_repo)
     record_use_case = RecordUseCase(record_repo)
     archer_rank_use_case = ArcherRankUseCase(archer_rank_repo)
+    payment_history_usecase = PaymentHistoryUseCase(payment_history_repo)
 
     # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
@@ -132,6 +139,8 @@ def init_app():
     record_bp.record_use_case = record_use_case
     archer_rank_bp.archer_rank_use_case = archer_rank_use_case
     subscription_bp.subscription_use_case = subscription_use_case
+    payment_bp.payment_history_usecase = payment_history_usecase
+    payment_history_bp.payment_history_usecase = payment_history_usecase
 
 
     # Register blueprints
@@ -143,6 +152,8 @@ def init_app():
     app.register_blueprint(record_bp, url_prefix='/api/v1/record')
     app.register_blueprint(archer_rank_bp, url_prefix='/api/v1/rank')
     app.register_blueprint(subscription_bp, url_prefix='/api/v1/subscription')
+    app.register_blueprint(payment_bp, url_prefix='/api/v1/payment')
+    app.register_blueprint(payment_history_bp, url_prefix='/api/v1/history')
 
     # jwt error handlers
     @jwt.expired_token_loader

@@ -13,8 +13,8 @@ import cloudinary.uploader as uploader
 auth_bp = Blueprint('auth', __name__)
 
 
-@auth_bp.post('/register/profile', strict_slashes=False)
-def register():
+@auth_bp.post('/register/plan/<plan_id>', strict_slashes=False)
+def register(plan_id: str):
     try:
         data: Dict = request.form.copy()
 
@@ -30,6 +30,7 @@ def register():
         if not validateEmail(email):
             abort(400, 'Invalid email address')
 
+        data['plan_id'] = plan_id
 
         image_file = request.files.get('Passport')
         if image_file:
@@ -65,6 +66,7 @@ def acknowledge(user_id):
 
         # register user
         usecase: UserUseCase = auth_bp.user_use_case
+        data['route'] = 'acknowledgment'
         success, message = usecase.update_user_with_id(user_id, data)
         status_code = 200 if success else 400
 
@@ -87,33 +89,25 @@ def archery_conduct(user_id):
 
         # register user
         usecase: UserUseCase = auth_bp.user_use_case
+        data['route'] = 'conduct'
         success, message = usecase.update_user_with_id(user_id, data)
-        status_code = 200 if success else 400
-
-        return jsonify({"error": not success, "message": message}), status_code
-    except Exception as e:
-        current_app.logger.error(f"Failed to register user: {str(e)}")
-        abort(500, 'Failed to register user')
-
-@auth_bp.put('/register/subscribe/<user_id>/plan/<plan_id>', strict_slashes=False)
-def subscribe(user_id, plan_id):
-    try:
-        data: Dict = request.get_json()
-        data['user_id'] = user_id
-        data['plan_id'] = plan_id
-
-        # register user subscription
-        usecase: SubscriptionUseCase = auth_bp.subscription_use_case
-        success, result_data = usecase.create_subscription(data)
-        status_code = 200 if success else 400
 
         if not success:
-            return jsonify({"error": not success, "message": result_data.get("message")}), status_code
+            return jsonify({"error": not success, "message": message}), 400
 
-        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), status_code
+        # proceed to get url for payment
+        subscriptio_usecase: SubscriptionUseCase = auth_bp.subscription_use_case
+        success, result_data = subscriptio_usecase.create_subscription(user_id)
+
+        if not success:
+            return jsonify({"error": not success, "message": result_data.get("message")}), 400
+
+        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), 200
+
     except Exception as e:
         current_app.logger.error(f"Failed to register user: {str(e)}")
         abort(500, 'Failed to register user')
+
 
 @auth_bp.post('/login', strict_slashes=False)
 def login():

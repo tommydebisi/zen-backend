@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(BaseModel):
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
+    plan_id: Optional[PydanticObjectId] = Field(None, alias="plan_id")
     email: str
     Password: str
     firstName: str
@@ -21,8 +22,11 @@ class User(BaseModel):
     PhoneNumber: Optional[str] = None
     expiry_date: Optional[datetime] = datetime.now(timezone.utc) + timedelta(minutes=1)
     role: Optional[str] = "user"
+    customer_code: Optional[str] = None
+    auth_code: Optional[str] = None
 
     image_url: Optional[str] = None
+    status: Optional[str] = "Details"
 
     # Emergency Contact
     EmergencyFirstName: Optional[str] = None
@@ -71,6 +75,10 @@ class User(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    #  User payment information
+    auth_code: Optional[str] = None
+    status: Optional[str] = None
+
     # Member acknowledgement
     member_acknowledgement: Optional[bool] = None
 

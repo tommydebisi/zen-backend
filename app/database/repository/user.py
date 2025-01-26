@@ -6,7 +6,6 @@ from typing import Dict, Any
 class UserRepository:
     def __init__(self, db: Database):
         self.db = db
-        self.db.db[User.__name__].create_index("expiry_date", expireAfterSeconds=0)
 
     def get_by_email(self, email: str):
         """Fetch a user by email."""
@@ -15,6 +14,10 @@ class UserRepository:
     def get_by_id(self, user_id: str):
         """Fetch a user by ID."""
         return self.db.get_one(User.__name__, {"_id": ObjectId(user_id)})
+
+    def get_by_customer_code(self, customer_code: str):
+        """Fetch a user by ID."""
+        return self.db.get_one(User.__name__, {"customer_code": customer_code})
 
     def get_all_users(self):
         """Fetch all users."""
@@ -27,7 +30,6 @@ class UserRepository:
         # fetch the inserted record
         return str(result.inserted_id)
 
-    
     def find_and_update_user(self, query: Dict[str, Any], data: Dict):
         """Find a user by query and update the record."""
         return self.db.update_one(User.__name__, query, data)

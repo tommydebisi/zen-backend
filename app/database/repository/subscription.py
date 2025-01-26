@@ -15,6 +15,14 @@ class SubscriptionRepository:
         """Fetch a subscription by user ID."""
         return self.db.get_one(Subscription.__name__, {"user_id": ObjectId(user_id)})
     
+    def get_by_plan_user_id(self, user_id: str, plan_id: str):
+        """Fetch a subscription by user ID."""
+        return self.db.get_one(Subscription.__name__, { "user_id": ObjectId(user_id), "plan_id": ObjectId(plan_id) })
+    
+    def get_by_plan_id(self, plan_id: str):
+        """Fetch a subscription by user ID."""
+        return self.db.get_one(Subscription.__name__, {"plan_id": ObjectId(plan_id)})
+    
     def get_by_id(self, subscription_id: str):
         """Fetch a subscription by ID."""
         return self.db.get_one(Subscription.__name__, {"_id": ObjectId(subscription_id)})
@@ -34,9 +42,11 @@ class SubscriptionRepository:
         """Find a subscription by query and update the record."""
         return self.db.update_one(Subscription.__name__, query, data)
     
-    def find_and_delete_subscription(self, query: Dict[str, Any]):
+    def find_and_cancel_subscription(self, query: Dict[str, Any], status: str):
         """Find a subscription by query and delete the record."""
-        return self.db.delete_one(Subscription.__name__, query)
+        return self.db.update_one(Subscription.__name__, query, {
+            "status": status
+        })
     
     def get_subscriptions_with_user_details(self) -> List[Dict[str, Any]]:
         """

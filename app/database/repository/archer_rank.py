@@ -38,3 +38,23 @@ class ArcherRankRepository:
     def filter_and_sort_by(self, query: Dict[str, Any], key: str, order: int):
         """Filter and sort archer ranks by a key."""
         return self.db.filter_and_sort_by(ArcherRank.__name__, query, key, order)
+    
+    def find_all_points_by_email(self, email: str):
+        pipeline = [
+            {
+                "$match": {
+                    "email": ObjectId(email)
+                    }
+                },
+            {"$group": {
+            "_id": "$user_id",
+            "total_points": {"$sum": "$point"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "user_id": "$_id",
+                "total_points": 1 
+            }},
+        ]
+
+        return self.db.aggregate(ArcherRank.__name__, pipeline=pipeline)
