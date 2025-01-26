@@ -87,7 +87,7 @@ def initialize_payment():
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400
 
-        return jsonify({"error": not success, "data": resp_data.get("data")}), 200
+        return jsonify({"error": not success, "message": resp_data.get('message'), "data": resp_data.get("data")}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to initialize payment: {str(e)}")
         abort(500, 'Failed to initialize payment')
@@ -101,7 +101,7 @@ def verify_payment(reference: str):
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400
 
-        return jsonify({"error": not success, "data": resp_data.get("data")}), 200
+        return jsonify({"error": not success, "message": resp_data.get("message"), "status": resp_data.get("status")}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to initialize payment: {str(e)}")
         abort(500, 'Failed to initialize payment')

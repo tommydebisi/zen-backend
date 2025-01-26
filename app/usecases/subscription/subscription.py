@@ -286,8 +286,10 @@ class SubscriptionUseCase:
                     "message": response.get('message'),
                     "status": 400
                 }
-        
+
         response_data: Dict = response.get('data')
+        
         return True, {
-            "message": "Subscription deleted successfully."
+            "status": response_data.get('status'),
+            "message": response.get('message')
         }
