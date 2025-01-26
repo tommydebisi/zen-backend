@@ -20,7 +20,7 @@ class SubscriptionUseCase:
             return False, {
                 "message": "User not found."
             }
-        
+
         if user_data.get('status') != 'payment':
             return False, {
                 "message": "User not done with registration"
@@ -32,6 +32,7 @@ class SubscriptionUseCase:
 
 
         plan_data = self.plan_repo.get_by_id(data.get('plan_id'))
+        new_reg = self.plan_repo.get_by_registration()
 
         if not plan_data:
             return False, {
@@ -51,11 +52,18 @@ class SubscriptionUseCase:
             subscription_data = Subscription(**data)
             subscription = self.subscription_repo.create_subscription(subscription_data.to_bson())
 
+        amount = plan_data.get('Price')
+        if new_reg:
+            amount += new_reg.get('Price')
+    
+        # convert kobo to naira
+        amount *= amount
+
         # initialize paystack payment
         response: Dict = paystack.transaction.initialize(
             plan=plan_data.get('plan_code'),
             email=user_data.get('email'),
-            amount=plan_data.get('Price')
+            amount=amount
         )
 
         if not response.get('status'):
@@ -170,7 +178,7 @@ class SubscriptionUseCase:
             response: Dict = paystack.transaction.initialize(
                 plan=plan_data.get('plan_code'),
                 email=user_data.get('email'),
-                amount=plan_data.get('Price')
+                amount=plan_data.get('Price') * 100
             )
 
             if not response.get('status'):
@@ -245,7 +253,7 @@ class SubscriptionUseCase:
         """
         response: Dict = paystack.transaction.initialize(
                 email=email,
-                amount=amount
+                amount=amount * 100
             )
         
         if not response.get('status'):

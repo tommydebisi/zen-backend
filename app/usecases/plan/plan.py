@@ -21,11 +21,11 @@ class PlanUseCase:
                 "message": "Plan already exists."
             }
         
-        if  plan_data.interval != 'walkIn':
+        if  plan_data.interval != 'walkIn' or plan_data.interval != 'registration':
             response: Dict = paystack.plan.create(
                 name=plan_data.newplan,
                 interval=plan_data.interval,
-                amount=plan_data.Price * 100, # convert accordingly in paystack
+                amount=plan_data.Price, # convert accordingly in paystack
                 currency="NGN",
             )
 

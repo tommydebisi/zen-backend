@@ -15,6 +15,10 @@ class PlanRepository:
         """Fetch a plan by name."""
         return self.db.get_one(Plan.__name__, {"newplan": newplan})
 
+    def get_by_registration(self):
+        """Fetch a plan by registration."""
+        return self.db.get_one(Plan.__name__, {"interval": "registration"})
+
     def get_all_plans(self):
         """Fetch all plans."""
         return self.db.get_all(Plan.__name__)

@@ -14,6 +14,7 @@ class IntervalType(str, Enum):
     Annually = "annually"
     Hourly = "hourly"
     WalkIn = 'walkIn'
+    Registration = 'registration'
 
 
 class Plan(BaseModel):
