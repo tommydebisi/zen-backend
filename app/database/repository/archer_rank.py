@@ -43,16 +43,16 @@ class ArcherRankRepository:
         pipeline = [
             {
                 "$match": {
-                    "email": ObjectId(email)
+                    "email": email
                     }
                 },
             {"$group": {
-            "_id": "$user_id",
+            "_id": "$email",
             "total_points": {"$sum": "$point"}
             }},
             {"$project": {
                 "_id": 0,
-                "user_id": "$_id",
+                "email": "$_id",
                 "total_points": 1 
             }},
         ]

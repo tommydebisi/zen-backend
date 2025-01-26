@@ -119,7 +119,7 @@ def init_app():
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
-    user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo, archer_rank_repo)
+    user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo, archer_rank_repo, payment_history_repo)
     contact_us_use_case = ContactUsUseCase(contact_us_repo)
     token_use_case = TokenUseCase(token_repo)
     plan_use_case = PlanUseCase(plan_repo)

@@ -3,6 +3,7 @@ from app.database import (
     SubscriptionRepository,
     PlanRepository,
     ArcherRankRepository,
+    PaymentHistoryRepository
 )
 from app.database.models.user import User, UserUpdate
 from app.database.models.subscription import Subscription
@@ -14,11 +15,12 @@ from bson import ObjectId
 
 
 class UserUseCase:
-    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository, plan_repo: PlanRepository, rank_repo: ArcherRankRepository):
+    def __init__(self, user_repo: UserRepository, subscription_repo: SubscriptionRepository, plan_repo: PlanRepository, rank_repo: ArcherRankRepository, pay_history_repo: PaymentHistoryRepository):
         self.user_repo = user_repo
         self.subscription_repo = subscription_repo
         self.plan_repo = plan_repo
         self.rank_repo = rank_repo
+        self.pay_history_repo = pay_history_repo
 
 
     def register_user(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Dict[str, Any]]]:
@@ -116,10 +118,11 @@ class UserUseCase:
         response_data = {}
 
         # get user's total points
-        points = self.rank_repo.find_all_points_by_email(user.get('email'))[0].get('total_points', 0)
-        response_data["points"] = points
+        points = self.rank_repo.find_all_points_by_email(user.get('email'))
+        if points:
+            response_data["points"] = points[0].get('total_points', 0)
 
-        subscription = self.subscription_repo.get_by_user_id(user_id)
+        subscription = self.subscription_repo.get_by_plan_user_id(user_id=user_id, plan_id=str(user.get('plan_id')))
         if subscription:
             subscription_data = Subscription(**subscription)
             response_data["status"] = subscription_data.status
@@ -128,9 +131,13 @@ class UserUseCase:
             plan = self.plan_repo.get_by_id(subscription_data.plan_id)
             if plan:
                 plan_data = Plan(**plan)
+                response_data['plan_id'] = str(plan_data.id)
                 response_data["plan"] = plan_data.newplan
                 response_data["benefits"] = plan_data.benefits
                 response_data["price"] = plan_data.Price
+
+            # get all payment history for a user
+            response_data['payment_history'] = self.pay_history_repo.all_payment_history_by_user_id(str(user["_id"]))
 
         # convert _id to string
         user["_id"] = str(user["_id"])

@@ -1,5 +1,5 @@
 from app.database import PlanRepository
-from app.database.models.plan import Plan, PlanUpdate
+from app.database.models.plan import Plan, PlanUpdate, IntervalType
 from app.services.paystack.setup import paystack
 from pymongo.errors import PyMongoError
 from bson import ObjectId
@@ -14,29 +14,27 @@ class PlanUseCase:
         """Create a new plan."""
         plan_data = Plan(**data)
         
-
         # Check if the plan already exists
         if self.plan_repo.get_by_newplan(plan_data.newplan):
             return False, {
                 "message": "Plan already exists."
             }
-        
-        if  plan_data.interval != 'walkIn' or plan_data.interval != 'registration':
-            response: Dict = paystack.plan.create(
-                name=plan_data.newplan,
-                interval=plan_data.interval,
-                amount=plan_data.Price, # convert accordingly in paystack
-                currency="NGN",
-            )
 
-            if not response.get('status'):
-                return False, {
-                    "message": response.get('message')
-                }
-            
-            response_data: Dict = response.get('data')
-            plan_data.plan_code = response_data.get('plan_code')
+        if plan_data.interval.name != 'Registration' and plan_data.interval.name != 'WalkIn':
+                response: Dict = paystack.plan.create(
+                    name=plan_data.newplan,
+                    interval=plan_data.interval,
+                    amount=plan_data.Price, # convert accordingly in paystack
+                    currency="NGN",
+                )
 
+                if not response.get('status'):
+                    return False, {
+                        "message": response.get('message')
+                    }
+                
+                response_data: Dict = response.get('data')
+                plan_data.plan_code = response_data.get('plan_code')
 
         bson_data = plan_data.to_bson()
         # Insert into database

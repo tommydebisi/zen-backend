@@ -13,8 +13,8 @@ class IntervalType(str, Enum):
     Biannually = "biannually"
     Annually = "annually"
     Hourly = "hourly"
-    WalkIn = 'walkIn'
-    Registration = 'registration'
+    WalkIn = "walkIn"
+    Registration = "registration"
 
 
 class Plan(BaseModel):
