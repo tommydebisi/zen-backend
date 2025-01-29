@@ -1,8 +1,10 @@
 from typing import Dict, Callable, Tuple, Any
 from flask import current_app
+from app.services.paystack.setup import paystack
 from app.services.paystack.models import ChargeSuccessData, SubscriptionCreateData, InvoiceUpdateData
-from app.extensions import UserRepository, SubscriptionRepository, PaymentHistoryRepository
+from app.extensions import UserRepository, SubscriptionRepository, PaymentHistoryRepository, PlanRepository
 from app.database.models.payment_history import PaymentHistory
+from datetime import datetime
 
 
 class PayStackPayment:
@@ -46,6 +48,7 @@ class PayStackPayment:
         # init user repo
         user_repo = UserRepository(PayStackPayment.get_db())
         payment_history_repo = PaymentHistoryRepository(PayStackPayment.get_db())
+        plan_repo = PlanRepository(PayStackPayment.get_db())
 
         #  if customer code is not present then it is a walkIn sub
         if not success_data.customer.customer_code:
@@ -76,7 +79,21 @@ class PayStackPayment:
                                             })
             if result.matched_count == 0:
                     return False, {"message": "Subscription not found."}
+
+            # also update the plan by remove the registration fee
+            new_reg = plan_repo.get_by_registration()
+            if new_reg:
+                new_amount: int = new_reg.get('Price')
+
+                plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'amount': success_data.plan.amount - new_amount })
+                paystack.plan.update(
+                    plan_id=success_data.plan.plan_code,
+                    amount=success_data.plan.amount-new_amount
+                )
         
+        # find plan by plan code
+        plan_paid_for = plan_repo.get_by_plan_code(plan_code=success_data.plan.plan_code)
+
         history_data = {
                 "amount": success_data.amount,
                 "name": f"{success_data.customer.first_name} {success_data.customer.last_name}",
@@ -84,7 +101,7 @@ class PayStackPayment:
                 "payment_date": success_data.paid_at,
                 "status": success_data.status,
                 "user_id": user_data.get('_id'),
-                "plan_id": user_data.get('plan_id')
+                "plan_id": plan_paid_for.get('_id')
             }
         history_parsed_data = PaymentHistory(**history_data)
 
@@ -102,22 +119,46 @@ class PayStackPayment:
         # init repo
         user_repo = UserRepository(PayStackPayment.get_db())
         subscription_repo = SubscriptionRepository(PayStackPayment.get_db())
+        plan_repo = PlanRepository(PayStackPayment.get_db())
 
         # get the user by customer id
         user_data = user_repo.get_by_customer_code(success_data.customer.customer_code)
+        plan_data = plan_repo.get_by_plan_code(success_data.plan.plan_code)
 
-        # update the subscription with the plan selected
-        result = subscription_repo.find_and_update_subscription({ "plan_id": user_data.get('plan_id'), "user_id": user_data.get('_id') },
-                                                       {
-                                                           "email_token": success_data.email_token,
-                                                           "subscription_code": success_data.subscription_code,
-                                                           "start_date": success_data.createdAt,
-                                                           "end_date": success_data.next_payment_date,
-                                                           "status": success_data.status
-                                                       })
+        # check if the current planId in user data is same as the one in the create event
+        if str(user_data.get('plan_id')) != str(plan_data.get('_id')):
+            # this is an upgrade in subscription
+            # get the previous subnscription and disable it
+            previous_sub = subscription_repo.get_by_plan_user_id(user_id=str(user_data.get('_id')), plan_id=str(user_data.get('plan_id')))
+            # disable subscription
+            paystack.subscription.disable(
+                code=previous_sub.get('subscription_code'),
+                token=previous_sub.get('email_token')
+            )
 
-        if result.matched_count == 0:
-                    return False, {"message": "Subscription not found."}
+            # update user id
+            user_repo.find_and_update_user({ '_id': user_data.get('_id') }, {
+                "plan_id": plan_data.get('_id'),
+                "updated_at": datetime.now()
+            })
+
+        # data to create subscription
+        sub_data = {
+            "user_id": user_data.get('_id'),
+            "plan_id": plan_data.get('_id'),
+            "email": success_data.customer.email,
+            "email_token": success_data.email_token,
+            "subscription_code": success_data.subscription_code,
+            "start_date": success_data.createdAt,
+            "end_date": success_data.next_payment_date,
+            "status": success_data.status
+        }
+
+        # create the subscription with the plan selected
+        result = subscription_repo.create_subscription(sub_data)
+
+        if not result:
+                    return False, {"message": "Subscription not created."}
         return True, {"message": "Subscription create success"}
 
     @staticmethod
@@ -186,4 +227,3 @@ class PayStackPayment:
         return True, {
             "message": "Payment was made or not!"
         }
-

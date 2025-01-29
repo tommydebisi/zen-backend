@@ -10,6 +10,10 @@ class PlanRepository:
     def get_by_id(self, plan_id: str):
         """Fetch a plan by ID."""
         return self.db.get_one(Plan.__name__, {"_id": ObjectId(plan_id)})
+
+    def get_by_plan_code(self, plan_code: str):
+        """Fetch a plan by ID."""
+        return self.db.get_one(Plan.__name__, {"plan_code": plan_code})
     
     def get_by_newplan(self, newplan: str):
         """Fetch a plan by name."""
@@ -37,3 +41,4 @@ class PlanRepository:
     def find_and_delete_plan(self, query: Dict[str, Any]):
         """Find a plan by query and delete the record."""
         return self.db.delete_one(Plan.__name__, query)
+    

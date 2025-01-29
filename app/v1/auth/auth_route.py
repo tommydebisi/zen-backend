@@ -83,9 +83,13 @@ def archery_conduct(user_id):
         risks = data.get('acknowledge_risks')
         consent = data.get('consent_to_media')
         initials = data.get('initials')
+        callback_url = data.get('callback_url')
 
         if not risks or not consent or not initials:
             abort(400, 'acknowledge_risks, consent_to_media, and intials are required')
+
+        if not callback_url:
+            abort(400, 'call back url required')
 
         # register user
         usecase: UserUseCase = auth_bp.user_use_case
@@ -97,7 +101,7 @@ def archery_conduct(user_id):
 
         # proceed to get url for payment
         subscriptio_usecase: SubscriptionUseCase = auth_bp.subscription_use_case
-        success, result_data = subscriptio_usecase.create_subscription(user_id)
+        success, result_data = subscriptio_usecase.create_subscription(user_id, callback_url)
 
         if not success:
             return jsonify({"error": not success, "message": result_data.get("message")}), 400

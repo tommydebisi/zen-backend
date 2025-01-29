@@ -24,7 +24,7 @@ class PlanUseCase:
                 response: Dict = paystack.plan.create(
                     name=plan_data.newplan,
                     interval=plan_data.interval,
-                    amount=plan_data.Price, # convert accordingly in paystack
+                    amount=plan_data.Price * 100, # convert accordingly in paystack
                     currency="NGN",
                 )
 
@@ -35,6 +35,9 @@ class PlanUseCase:
                 
                 response_data: Dict = response.get('data')
                 plan_data.plan_code = response_data.get('plan_code')
+
+        if plan_data.interval.name != 'Registration':
+            plan_data.Price *= 100
 
         bson_data = plan_data.to_bson()
         # Insert into database

@@ -14,6 +14,7 @@ class SubscriptionStatus(str, Enum):
     ATTENTION = "attention"
     CANCELLED = "cancelled"
     COMPLETED = "completed"
+    ENABLED = "enabled"
 
 
 class Subscription(BaseModel):

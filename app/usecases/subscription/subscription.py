@@ -12,7 +12,7 @@ class SubscriptionUseCase:
         self.user_repo = user_repo
         self.plan_repo = plan_repo
 
-    def create_subscription(self, user_id: str) -> Tuple[bool, Dict[str, Any]]:
+    def create_subscription(self, user_id: str, callback_url: str) -> Tuple[bool, Dict[str, Any]]:
         """Create a new subscription."""
         # check if user exists 
         user_data: Dict = self.user_repo.get_by_id(user_id=user_id)
@@ -25,45 +25,39 @@ class SubscriptionUseCase:
             return False, {
                 "message": "User not done with registration"
             }
-        data = dict()
-        data['user_id'] = user_id
-        data['plan_id'] = user_data.get('plan_id')
-        data['email'] = user_data.get('email')
 
-
-        plan_data = self.plan_repo.get_by_id(data.get('plan_id'))
-        new_reg = self.plan_repo.get_by_registration()
-
+        plan_data = self.plan_repo.get_by_id(user_data.get('plan_id'))
         if not plan_data:
             return False, {
                     "message": "Plan not found."
                 }
 
         # check if subscription with the plan and user id exists
-        if sub_data := self.subscription_repo.get_by_plan_user_id(data.get('user_id'), data.get('plan_id')):
+        if sub_data := self.subscription_repo.get_by_plan_user_id(str(user_data.get('_id')), str(user_data.get('plan_id'))):
             if sub_data.get('status') != 'pending':
                 return False, {
                     "message": "User already has an active subscription."
                 }
-        
-        # create a subscription collection if user doesn't have before
-        subscription = dict()
-        if not sub_data:
-            subscription_data = Subscription(**data)
-            subscription = self.subscription_repo.create_subscription(subscription_data.to_bson())
 
-        amount = plan_data.get('Price')
+        old_amount = plan_data.get('Price')
+
+
+        new_reg = self.plan_repo.get_by_registration()
         if new_reg:
-            amount += new_reg.get('Price')
-    
-        # convert kobo to naira
-        amount *= amount
+            new_amount: int = new_reg.get('Price')
+
+            self.plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'amount': old_amount + new_amount })
+            response: Dict = paystack.plan.update(
+                plan_id=plan_data.get('plan_code'),
+                amount=old_amount+new_amount
+            )
 
         # initialize paystack payment
         response: Dict = paystack.transaction.initialize(
             plan=plan_data.get('plan_code'),
             email=user_data.get('email'),
-            amount=amount
+            amount=new_amount,
+            callback_url=callback_url
         )
 
         if not response.get('status'):
@@ -76,7 +70,6 @@ class SubscriptionUseCase:
             "message": response.get('message'),
             "data": {
                 "authorization_url": response_data.get('authorization_url'),
-                "subscription_id": str(subscription.get('_id', "")),
                 "reference": response_data.get('reference')
             }
         }
@@ -131,95 +124,54 @@ class SubscriptionUseCase:
             "status": 200
         }
 
-    def upgrade_subscription(self, plan_id: str, user_id: str) -> Tuple[bool, Dict[str, Any]]:
+    def upgrade_subscription(self, plan_id: str, user_id: str, callback_url: str) -> Tuple[bool, Dict[str, Any]]:
         """
             Upgrades to a new subscription or enables former subscription
         """
-        # check if any subscription has the plan id
-        sub_data = self.subscription_repo.get_by_plan_user_id(user_id=user_id, plan_id=plan_id)
-        if not sub_data:
-            # need user email and plan_code
-            user_data = self.user_repo.get_by_id(user_id=user_id)
-            if not user_data:
-                return False, {
-                    "message": "User not found",
-                    "status": 404
-                }
 
-            plan_data = self.plan_repo.get_by_id(plan_id=plan_id)
-            if not plan_data:
-                return False, {
-                    "message": "Plan not found",
-                    "status": 404
-                }
-
-            if user_data.get('status') != "done":
-                return False, {
-                    "message": "No active subscription",
-                    "status": 400
-                }
-            
-            # update plan_id field in user model
-            self.user_repo.find_and_update_user({ "_id": ObjectId(user_id) }, 
-                                                {
-                                                    "plan_id": ObjectId(plan_id)
-                                                })
-            
-            # create a subscription
-            data = dict()
-            data['user_id'] = user_id
-            data['plan_id'] = plan_id
-            data['email'] = user_data.get('email')
-
-            subscription_data = Subscription(**data)
-            subscription = self.subscription_repo.create_subscription(subscription_data.to_bson())
-
-            # initialize a transaction for the new subscription
-            response: Dict = paystack.transaction.initialize(
-                plan=plan_data.get('plan_code'),
-                email=user_data.get('email'),
-                amount=plan_data.get('Price') * 100
-            )
-
-            if not response.get('status'):
-                return False, {
-                    "message": response.get('message'),
-                    "status": 400
-                }
-        
-            response_data: Dict = response.get('data')
-            return True, {
-                "message": response.get('message'),
-                "data": {
-                    "authorization_url": response_data.get('authorization_url'),
-                    "subscription_id": str(subscription.get('_id', "")),
-                    "reference": response_data.get('reference')
-                },
-                "status": 200
+        # need user email and plan_code
+        user_data = self.user_repo.get_by_id(user_id=user_id)
+        if not user_data:
+            return False, {
+                "message": "User not found",
+                "status": 404
             }
-        
-        # there is subscription data, then it must be disabled
-        sub_parsed_data = Subscription(**sub_data)
 
-        # update plan_id field in user model
-        self.user_repo.find_and_update_user({ "_id": ObjectId(user_id) }, 
-                                            {
-                                                "plan_id": ObjectId(plan_id)
-                                            })
+        plan_data = self.plan_repo.get_by_id(plan_id=plan_id)
+        if not plan_data:
+            return False, {
+                "message": "Plan not found",
+                "status": 404
+            }
 
-        # enable subscription
-        self.subscription_repo.find_and_update_subscription({ "user_id": ObjectId(user_id), "plan_id": ObjectId(plan_id) }, 
-                                                            {
-                                                                "status": "enabled"
-                                                            })
-        
-        response = paystack.subscription.enable(
-            code=sub_parsed_data.subscription_code,
-            token=sub_parsed_data.email_token
+        if user_data.get('status') != "done":
+            return False, {
+                "message": "No active subscription",
+                "status": 400
+            }
+
+        # initialize a transaction for the new subscription
+        response: Dict = paystack.transaction.initialize(
+            plan=plan_data.get('plan_code'),
+            email=user_data.get('email'),
+            amount=plan_data.get('Price') * 100,
+            callback_url=callback_url
+            
         )
 
-        return response.get("status"), {
-            "message": response.get("message"),
+        if not response.get('status'):
+            return False, {
+                "message": response.get('message'),
+                "status": 400
+            }
+        
+        response_data: Dict = response.get('data')
+        return True, {
+            "message": response.get('message'),
+            "data": {
+                "authorization_url": response_data.get('authorization_url'),
+                "reference": response_data.get('reference')
+            },
             "status": 200
         }
 
@@ -247,13 +199,14 @@ class SubscriptionUseCase:
             "status": 200
         }
     
-    def initialize_payment(self, amount: int, email: str) -> Tuple[bool, Dict[str, Any]]:
+    def initialize_payment(self, amount: int, email: str, callback_url: str) -> Tuple[bool, Dict[str, Any]]:
         """
             Initializes a payment
         """
         response: Dict = paystack.transaction.initialize(
                 email=email,
-                amount=amount * 100
+                amount=amount * 100,
+                callback_url=callback_url
             )
         
         if not response.get('status'):

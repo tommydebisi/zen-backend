@@ -62,9 +62,16 @@ def renew_subscription_plan(plan_id: str):
 @auth_required()
 def upgrade_subscription_plan(plan_id: str):
     try:
+        data: Dict = request.get_json()
+
+        callback_url = data.get('callback_url')
+
+        if not callback_url:
+            abort(400, 'call back url required')
+
         user_id: str = g.user_id
         usecase: SubscriptionUseCase = subscription_bp.subscription_use_case
-        success, resp_data = usecase.upgrade_subscription(plan_id=plan_id, user_id=user_id)
+        success, resp_data = usecase.upgrade_subscription(plan_id=plan_id, user_id=user_id, callback_url=callback_url)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), resp_data.get("status")
@@ -80,9 +87,21 @@ def upgrade_subscription_plan(plan_id: str):
 @subscription_bp.post('/pay', strict_slashes=False)
 def initialize_payment():
     try:
-        request_data: Dict = request.get_json()
+        data: Dict = request.get_json()
+
+        callback_url = data.get('callback_url')
+        amount = data.get('amount')
+        email = data.get('email')
+
+        if not callback_url:
+            abort(400, 'call back url required')
+        if not callback_url:
+            abort(400, 'amount required')
+        if not callback_url:
+            abort(400, 'email required')
+
         usecase: SubscriptionUseCase = subscription_bp.subscription_use_case
-        success, resp_data = usecase.initialize_payment(request_data.get('amount') * 100, request_data.get('email'))
+        success, resp_data = usecase.initialize_payment(amount * 100, email, callback_url)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400

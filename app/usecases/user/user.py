@@ -170,9 +170,10 @@ class UserUseCase:
                 return False, "User already filled or not allowed to fill form"
             user_update_data.status = 'Waiver'
         elif data.get('route') == 'conduct':
-            if user_data.get('status') != 'Waiver':
+            if user_data.get('status') != 'Waiver' and user_data.get('status') != 'payment' :
                 return False, "User already filled or not allowed to fill form"
             user_update_data.status = 'payment'
 
-        self.user_repo.find_and_update_user({"_id": ObjectId(user_id)}, user_update_data.to_bson())
+        if  user_data.get('status') != 'payment':
+            self.user_repo.find_and_update_user({"_id": ObjectId(user_id)}, user_update_data.to_bson())
         return True, "User updated successfully."

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from datetime import datetime
 
 
@@ -62,15 +62,15 @@ class ChargeSuccessData(BaseModel):
     created_at: datetime
     channel: str
     currency: str
-    ip_address: str
-    metadata: Optional[str]
+    ip_address: Optional[str] = None
+    metadata: Optional[Union[Dict, str]] = None
     fees_breakdown: Optional[Any] = None
     log: Optional[Any]
     fees: int
     fees_split: Optional[Any] = None
     authorization: Authorization
     customer: Customer
-    plan: Optional[Plan]
+    plan: Optional[Plan] = None
     subaccount: Dict[str, Any]
     split: Dict[str, Any]
     order_id: Optional[str] = None
