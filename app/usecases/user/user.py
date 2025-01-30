@@ -117,10 +117,15 @@ class UserUseCase:
             }
         response_data = {}
 
+        # get user image_url
+        response_data['image_url'] = user.get('image_url')
+
         # get user's total points
         points = self.rank_repo.find_all_points_by_email(user.get('email'))
         if points:
             response_data["points"] = points[0].get('total_points', 0)
+        else:
+            response_data["points"] = 0
 
         subscription = self.subscription_repo.get_by_plan_user_id(user_id=user_id, plan_id=str(user.get('plan_id')))
         if subscription:
