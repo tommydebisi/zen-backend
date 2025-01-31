@@ -119,6 +119,7 @@ class UserUseCase:
 
         # get user image_url
         response_data['image_url'] = user.get('image_url')
+        response_data['user_status'] = user.get('status')
 
         # get user's total points
         points = self.rank_repo.find_all_points_by_email(user.get('email'))
