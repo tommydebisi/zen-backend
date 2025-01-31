@@ -85,3 +85,45 @@ class SubscriptionRepository:
         ]
 
         return self.db.aggregate(Subscription.__name__, pipeline)
+    
+    def get_active_users_by_plan(self) -> List[Dict[str, Any]]:
+        """
+            Gets all active users for a particular plan 
+        """
+        pipeline = [
+            {"$match": {"status": "active"}},
+            {
+                "$group": {
+                    "_id": "$plan_id",
+                    "active_users": {"$sum": 1}
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "Plan",
+                    "localField": "_id",
+                    "foreignField": "_id",
+                    "as": "plan_details"
+                }
+            },
+            {"$unwind": "$plan_details"},
+            {
+                "$project": {
+                    "_id": 0,
+                    "plan_name": "$plan_details.newplan",
+                    "active_users": 1
+                }
+            }
+        ]
+
+        return self.db.aggregate(Subscription.__name__, pipeline)
+    
+    def get_all_active_users(self) -> List[Dict[str, Any]]:
+        """
+            Get the number of users actively subscribed
+        """
+        pipeline = [
+            {"$match": {"status": "active"}},
+            {"$count": "total_active_users"}
+        ]
+        return self.db.aggregate(Subscription.__name__, pipeline)

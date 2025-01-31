@@ -21,7 +21,8 @@ class PayStackPayment:
             'charge.success': PayStackPayment.handle_charge_success,
             'subscription.create': PayStackPayment.handle_subscription_create,
             'subscription.disable': PayStackPayment.handle_subscription_disable,
-            'invoice.update': PayStackPayment.handle_invoice_updated
+            'invoice.update': PayStackPayment.handle_invoice_updated,
+            'subscription.not_renew': PayStackPayment.handle_subscription_not_renew
         }
 
         # Get the handler for the event type
@@ -85,7 +86,7 @@ class PayStackPayment:
             if new_reg:
                 new_amount: int = new_reg.get('Price')
 
-                plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'amount': success_data.plan.amount - new_amount })
+                plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'Price': success_data.plan.amount - new_amount })
                 paystack.plan.update(
                     plan_id=success_data.plan.plan_code,
                     amount=success_data.plan.amount-new_amount
@@ -226,4 +227,29 @@ class PayStackPayment:
         payment_history_repo.create_payment_history(history_parsed_data.to_bson())
         return True, {
             "message": "Payment was made or not!"
+        }
+    
+    @staticmethod
+    def handle_subscription_not_renew(data: Dict) -> Tuple[bool, Dict[str, Any]]:
+        """
+            handles the subscriptions not renew event
+        """
+        subscription_repo = SubscriptionRepository(PayStackPayment.get_db())
+
+
+        subscription_code = data.get('subscription_code')
+        email_token = data.get('email_token')
+        status = data.get('status')
+        end_date = data.get('next_payment_date')
+
+        # find and update the subscription model to non-renewing
+        subscription_repo.find_and_update_subscription(
+            {
+                "subscription_code": subscription_code,
+                "email_token": email_token
+            }, { "status": status, "end_date": end_date, "updated_at": datetime.now() }
+        )
+
+        return True, {
+            "message": "Subscription was cancelled"
         }

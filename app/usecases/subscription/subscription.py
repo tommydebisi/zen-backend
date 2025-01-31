@@ -45,8 +45,9 @@ class SubscriptionUseCase:
         new_reg = self.plan_repo.get_by_registration()
         if new_reg:
             new_amount: int = new_reg.get('Price')
+            print(new_amount)
 
-            self.plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'amount': old_amount + new_amount })
+            self.plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'Price': old_amount + new_amount })
             response: Dict = paystack.plan.update(
                 plan_id=plan_data.get('plan_code'),
                 amount=old_amount+new_amount
@@ -245,4 +246,24 @@ class SubscriptionUseCase:
         return True, {
             "status": response_data.get('status'),
             "message": response.get('message')
+        }
+    
+    def get_active_users(self) -> Tuple[bool, Dict[str, Any]]:
+        """
+            Gets all active users by with plan name too
+        """
+        data = dict()
+        # get active users by plan
+        active_users_plan = self.subscription_repo.get_active_users_by_plan()
+        data['active_users_per_plan'] = active_users_plan
+
+        # get total active users
+        total_active_users_result = self.subscription_repo.get_all_active_users()
+        total_active_users = total_active_users_result[0]["total_active_users"] if total_active_users_result else 0
+
+        data['total_active_users'] = total_active_users
+
+        return True, {
+            "message": "active users retrieved successfully",
+            "data": data
         }

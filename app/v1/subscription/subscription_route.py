@@ -16,7 +16,7 @@ def get_all_subscriptions_with_user_details():
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400
 
-        return jsonify({"error": not success, "data": resp_data.get("data")}), 200
+        return jsonify({"error": not success, "data": resp_data.get("data"), "message": resp_data.get('message')}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to get all subscriptions: {str(e)}")
         abort(500, 'Failed to get all subscriptions')
@@ -124,3 +124,19 @@ def verify_payment(reference: str):
     except Exception as e:
         current_app.logger.error(f"Failed to initialize payment: {str(e)}")
         abort(500, 'Failed to initialize payment')
+
+
+@subscription_bp.get('/active', strict_slashes=False)
+@admin_required()
+def get_all_active_users():
+    try:
+        usecase: SubscriptionUseCase = subscription_bp.subscription_use_case
+        success, resp_data = usecase.get_active_users()
+        
+        if not success:
+            return jsonify({"error": not success, "message": resp_data.get("message")}), 400
+
+        return jsonify({"error": not success, "data": resp_data.get("data"), "message": resp_data.get('message')},), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to get all subscriptions: {str(e)}")
+        abort(500, 'Failed to get all subscriptions')
