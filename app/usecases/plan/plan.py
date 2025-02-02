@@ -89,7 +89,8 @@ class PlanUseCase:
         try:
             # Add or update the `updated_at` field
             update_plan_data = PlanUpdate(**data)
-            update_plan_data.setDuration(interval=data.get('interval'))
+            if update_plan_data.interval:
+                update_plan_data.setDuration(interval=data.get('interval'))
 
             # Perform the update operation
             result = self.plan_repo.find_and_update_plan({"_id": ObjectId(plan_id)}, update_plan_data.to_bson())
@@ -114,6 +115,7 @@ class PlanUseCase:
                 del data_update['newplan']
 
             del data_update['updated_at']
+            del data_update['duration']
 
             # make changes to plan in paystack
             response: Dict = paystack.plan.update(

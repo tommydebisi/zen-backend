@@ -11,7 +11,6 @@ class IntervalType(str, Enum):
     Quarterly = "quarterly"
     Biannually = "biannually"
     Annually = "annually"
-    Hourly = "hourly"
     WalkIn = "walkIn"
     Registration = "registration"
 
