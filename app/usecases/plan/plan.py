@@ -13,6 +13,7 @@ class PlanUseCase:
     def create_plan(self, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Create a new plan."""
         plan_data = Plan(**data)
+        plan_data.setDuration(interval=data.get('interval'))
         
         # Check if the plan already exists
         if self.plan_repo.get_by_newplan(plan_data.newplan):
@@ -88,6 +89,7 @@ class PlanUseCase:
         try:
             # Add or update the `updated_at` field
             update_plan_data = PlanUpdate(**data)
+            update_plan_data.setDuration(interval=data.get('interval'))
 
             # Perform the update operation
             result = self.plan_repo.find_and_update_plan({"_id": ObjectId(plan_id)}, update_plan_data.to_bson())

@@ -25,7 +25,23 @@ class PlanRepository:
 
     def get_all_plans(self):
         """Fetch all plans."""
-        return self.db.get_all(Plan.__name__)
+        pipeline = [
+            {
+                "$project": {
+                    "_id": 1,
+                    "plan_code": 1,
+                    "newplan": 1,
+                    "Price": {"$toInt": {"$divide": ["$Price", 100]}},
+                    "benefits": 1,
+                    "interval": 1,
+                    "duration": 1,
+                    "created_at": 1,
+                    "updated_at": 1
+                }
+            }
+        ]
+
+        return self.db.aggregate(Plan.__name__, pipeline=pipeline)
 
     def create_plan(self, data: Dict):
         """Insert a new plan record."""

@@ -120,6 +120,7 @@ class UserUseCase:
         # get user image_url
         response_data['image_url'] = user.get('image_url')
         response_data['user_status'] = user.get('status')
+        response_data['plan_id'] = str(user.get('plan_id'))
 
         # get user's total points
         points = self.rank_repo.find_all_points_by_email(user.get('email'))
@@ -137,10 +138,9 @@ class UserUseCase:
             plan = self.plan_repo.get_by_id(subscription_data.plan_id)
             if plan:
                 plan_data = Plan(**plan)
-                response_data['plan_id'] = str(plan_data.id)
                 response_data["plan"] = plan_data.newplan
                 response_data["benefits"] = plan_data.benefits
-                response_data["price"] = plan_data.Price
+                response_data["price"] = plan_data.Price // 100
 
             # get all payment history for a user
             response_data['payment_history'] = self.pay_history_repo.all_payment_history_by_user_id(str(user["_id"]))

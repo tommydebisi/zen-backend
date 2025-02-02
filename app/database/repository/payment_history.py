@@ -47,7 +47,7 @@ class PaymentHistoryRepository:
                 "$project": {
                     "_id": 0,
                     "plan_name": "$plan_details.newplan",
-                    "amount": 1,
+                    "amount": {"$toInt": {"$divide": ["$amount", 100]}},
                     "payment_date": 1,
                     "status": 1
                 }
