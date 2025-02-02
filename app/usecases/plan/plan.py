@@ -91,6 +91,8 @@ class PlanUseCase:
             update_plan_data = PlanUpdate(**data)
             if update_plan_data.interval:
                 update_plan_data.setDuration(interval=data.get('interval'))
+            if update_plan_data.Price:
+                update_plan_data.Price *= 100 
 
             # Perform the update operation
             result = self.plan_repo.find_and_update_plan({"_id": ObjectId(plan_id)}, update_plan_data.to_bson())
@@ -105,10 +107,15 @@ class PlanUseCase:
             
             # get the update plan by id
             plan_data = Plan(**self.plan_repo.get_by_id(plan_id=plan_id))
-            data_update = update_plan_data.to_bson()
+            if plan_data.interval.name == 'Registration' or plan_data.interval.name == 'WalkIn':
+                return True, {
+                    "message": "plan updated successfully"
+                }
 
+            data_update = update_plan_data.to_bson()
+            
             if data_update.get('Price'):
-                data_update['amount'] = data_update['Price'] * 100
+                data_update['amount'] = data_update['Price']
                 del data_update['Price']
             if data_update.get('newplan'):
                 data_update['name'] = data_update['newplan']
