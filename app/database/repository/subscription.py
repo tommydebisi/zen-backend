@@ -1,5 +1,6 @@
 from app.database.base import Database
 from app.database.models.subscription import Subscription
+from app.database.models.plan import Plan
 from bson import ObjectId
 from typing import Dict, Any, List
 
@@ -88,35 +89,72 @@ class SubscriptionRepository:
     
     def get_active_users_by_plan(self) -> List[Dict[str, Any]]:
         """
-            Gets all active users for a particular plan 
+        Gets the number of active users for each plan, including plans with zero active users.
+        Excludes plans where interval is 'registration' or 'walkIn'.
         """
         pipeline = [
-            {"$match": {"status": "active"}},
+            # 1️⃣ Filter out plans with interval 'registration' or 'walkIn'
             {
-                "$group": {
-                    "_id": "$plan_id",
-                    "active_users": {"$sum": 1}
+                "$match": {
+                    "interval": {"$nin": ["registration", "walkIn"]}
                 }
             },
+
+            # 2️⃣ Left Join (lookup) with subscriptions collection
             {
                 "$lookup": {
-                    "from": "Plan",
+                    "from": "Subscription",
                     "localField": "_id",
-                    "foreignField": "_id",
-                    "as": "plan_details"
+                    "foreignField": "plan_id",
+                    "as": "subscriptions"
                 }
             },
-            {"$unwind": "$plan_details"},
+
+            # 3️⃣ Unwind subscriptions (preserving plans with no subscriptions)
+            {
+                "$unwind": {
+                    "path": "$subscriptions",
+                    "preserveNullAndEmptyArrays": True  # Ensures plans with no subscriptions are kept
+                }
+            },
+
+            # 4️⃣ Filter only active subscriptions OR keep plans with no subscriptions
+            {
+                "$match": {
+                    "$or": [
+                        {"subscriptions.status": "active"},  # Keep active subscriptions
+                        {"subscriptions": None}  # Keep plans with no subscriptions
+                    ]
+                }
+            },
+
+            # 5️⃣ Group by plan_id and count active users
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "plan_name": {"$first": "$newplan"},  # Plan name
+                    "active_users": {
+                        "$sum": {
+                            "$cond": [
+                                {"$eq": ["$subscriptions.status", "active"]}, 1, 0
+                            ]
+                        }
+                    }
+                }
+            },
+
+            # 6️⃣ Format output
             {
                 "$project": {
                     "_id": 0,
-                    "plan_name": "$plan_details.newplan",
+                    "plan_name": 1,
                     "active_users": 1
                 }
             }
         ]
 
-        return self.db.aggregate(Subscription.__name__, pipeline)
+        return self.db.aggregate(Plan.__name__, pipeline)
+
     
     def get_all_active_users(self) -> List[Dict[str, Any]]:
         """
