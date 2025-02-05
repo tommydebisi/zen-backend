@@ -101,7 +101,7 @@ def initialize_payment():
             abort(400, 'email required')
 
         usecase: SubscriptionUseCase = subscription_bp.subscription_use_case
-        success, resp_data = usecase.initialize_payment(amount * 100, email, callback_url)
+        success, resp_data = usecase.initialize_payment(amount, email, callback_url)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400
