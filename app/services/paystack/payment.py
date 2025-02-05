@@ -71,7 +71,7 @@ class PayStackPayment:
         # get the user by customer id
         user_data = user_repo.get_by_customer_code(success_data.customer.customer_code)
 
-        if user_data.get('status') == 'payment':
+        if user_data.get('status') == 'Payment':
             # find and update the user to done
             result = user_repo.find_and_update_user({ "customer_code": success_data.customer.customer_code }, 
                                             {
