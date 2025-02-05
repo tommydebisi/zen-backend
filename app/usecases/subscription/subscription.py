@@ -21,7 +21,7 @@ class SubscriptionUseCase:
                 "message": "User not found."
             }
 
-        if user_data.get('status') != 'payment':
+        if user_data.get('status') != 'Payment':
             return False, {
                 "message": "User not done with registration"
             }
