@@ -176,7 +176,7 @@ class UserUseCase:
                 return False, "User already filled or not allowed to fill form"
             user_update_data.status = 'Waiver'
         elif data.get('route') == 'conduct':
-            if user_data.get('status') != 'Waiver' and user_data.get('status') != 'payment' :
+            if user_data.get('status') != 'Waiver' and user_data.get('status') != 'Payment':
                 return False, "User already filled or not allowed to fill form"
             user_update_data.status = 'Payment'
 
