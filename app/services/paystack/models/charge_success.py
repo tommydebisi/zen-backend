@@ -21,26 +21,26 @@ class Authorization(BaseModel):
 
 class Customer(BaseModel):
     id: int
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     email: str
     customer_code: str
-    phone: str
-    metadata: Dict[str, Any]
+    phone: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
     risk_action: str
     international_format_phone: Optional[str] = None
 
 
 class Plan(BaseModel):
-    id: int
-    name: str
-    plan_code: str
+    id: Optional[Union[Dict, int]] = None
+    name: Optional[Union[Dict, str]] = None
+    plan_code: Optional[Union[Dict, str]] = None
     description: Optional[str]= None
-    amount: int
-    interval: str
-    send_invoices: int
-    send_sms: int
-    currency: str
+    amount: Optional[Union[Dict, int]] = None
+    interval: Optional[Union[Dict, str]] = None
+    send_invoices: Optional[Union[Dict, int]] = None
+    send_sms: Optional[Union[Dict, int]] = None
+    currency: Optional[Union[Dict, str]] = None
 
 
 class Source(BaseModel):
