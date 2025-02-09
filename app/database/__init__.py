@@ -7,3 +7,4 @@ from app.database.repository.team import TeamRepository
 from app.database.repository.record import RecordRepository
 from app.database.repository.archer_rank import ArcherRankRepository
 from app.database.repository.payment_history import PaymentHistoryRepository
+from app.database.repository.walk_in import WalkInRepository

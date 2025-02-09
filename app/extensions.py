@@ -19,7 +19,8 @@ from app.database import (
     PlanRepository,
     RecordRepository,
     ArcherRankRepository,
-    PaymentHistoryRepository
+    PaymentHistoryRepository,
+    WalkInRepository
 )
 
 # Import usecases

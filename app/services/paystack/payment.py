@@ -2,8 +2,9 @@ from typing import Dict, Callable, Tuple, Any
 from flask import current_app
 from app.services.paystack.setup import paystack
 from app.services.paystack.models import ChargeSuccessData, SubscriptionCreateData, InvoiceUpdateData
-from app.extensions import UserRepository, SubscriptionRepository, PaymentHistoryRepository, PlanRepository
+from app.extensions import UserRepository, SubscriptionRepository, PaymentHistoryRepository, PlanRepository, WalkInRepository
 from app.database.models.payment_history import PaymentHistory
+from app.database.models.walk_in import WalkIn
 from datetime import datetime
 
 
@@ -37,7 +38,7 @@ class PayStackPayment:
                 current_app.logger.error(f"Error handling event '{event_type}': {e}")
         else:
             current_app.logger.error(f"No handler found for event type: {event_type}")
-            print(data)
+            current_app.logger.info(f"{data}")
             return True, {"message": "purposely unhandled"}
 
     @staticmethod
@@ -50,9 +51,21 @@ class PayStackPayment:
         user_repo = UserRepository(PayStackPayment.get_db())
         payment_history_repo = PaymentHistoryRepository(PayStackPayment.get_db())
         plan_repo = PlanRepository(PayStackPayment.get_db())
+        walk_in_repo = WalkInRepository(PayStackPayment.get_db())
 
-        #  if customer code is not present then it is a walkIn sub
-        if not success_data.customer.customer_code:
+        # check if metadata is present, then it is a walkIn sub
+        if type(success_data.metadata) is dict and success_data.metadata.get('custom'):
+            entry_date = success_data.metadata['custom'].get('entry_date')
+            walk_in_data = {
+                "email": success_data.customer.email,
+                "amount": success_data.amount // 100,
+                "entry_date": entry_date
+            }
+
+            parsed_walk_in_data = WalkIn(**walk_in_data)
+            walk_in_repo.create_walk_in(parsed_walk_in_data.to_bson())
+
+            # update payment history
             history_data = {
                 "amount": success_data.amount,
                 "email": success_data.customer.email,

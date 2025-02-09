@@ -200,14 +200,19 @@ class SubscriptionUseCase:
             "status": 200
         }
     
-    def initialize_payment(self, amount: int, email: str, callback_url: str) -> Tuple[bool, Dict[str, Any]]:
+    def initialize_payment(self, amount: int, email: str, callback_url: str, entry_date: datetime) -> Tuple[bool, Dict[str, Any]]:
         """
             Initializes a payment
         """
         response: Dict = paystack.transaction.initialize(
                 email=email,
                 amount=amount * 100,
-                callback_url=callback_url
+                callback_url=callback_url,
+                metadata={
+                    "custom": {
+                        "entry_date": entry_date
+                    }
+                }
             )
         
         if not response.get('status'):
