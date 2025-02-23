@@ -8,3 +8,4 @@ from app.v1.archer_rank.archer_rank_route import archer_rank_bp
 from app.v1.subscription.subscription_route import subscription_bp
 from app.v1.paystack.paystack_route import payment_bp
 from app.v1.history.payment_history_route import payment_history_bp
+from app.v1.champion_user.champion_user_route import champion_user_bp
