@@ -2,6 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_mailman import Mail
+import certifi
 
 from pymongo.errors import ServerSelectionTimeoutError
 
@@ -20,6 +21,7 @@ from app.database import (
     RecordRepository,
     ArcherRankRepository,
     PaymentHistoryRepository,
+    ChampionUserRepository,
     WalkInRepository
 )
 
@@ -33,7 +35,8 @@ from app.usecases import (
     TeamUseCase,
     RecordUseCase,
     ArcherRankUseCase,
-    PaymentHistoryUseCase
+    PaymentHistoryUseCase,
+    ChampionUserUseCase
 )
 
 # Import blueprints
@@ -47,7 +50,8 @@ from app.v1 import (
     archer_rank_bp,
     subscription_bp,
     payment_bp,
-    payment_history_bp
+    payment_history_bp,
+    champion_user_bp
 )
 
 
@@ -55,7 +59,6 @@ import logging
 from typing import Dict
 import cloudinary
 from app.config import config
-import os
 
 
 # Initialize extensions
@@ -78,7 +81,7 @@ def init_app():
     # global database
     app.config.from_prefixed_env()
     # Initialize Flask extensions
-    mongo.init_app(app)
+    mongo.init_app(app, tlsCAFile=certifi.where())
     jwt.init_app(app)
     mail.init_app(app)
     cors.init_app(app, resources={r"/*": {"origins": [
@@ -117,6 +120,7 @@ def init_app():
     record_repo = RecordRepository(db_instance)
     archer_rank_repo = ArcherRankRepository(db_instance)
     payment_history_repo = PaymentHistoryRepository(db_instance)
+    champion_user_repo = ChampionUserRepository(db_instance)
     
     # usecases
     subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
@@ -128,6 +132,7 @@ def init_app():
     record_use_case = RecordUseCase(record_repo)
     archer_rank_use_case = ArcherRankUseCase(archer_rank_repo)
     payment_history_usecase = PaymentHistoryUseCase(payment_history_repo)
+    champion_user_usecase = ChampionUserUseCase(champion_user_repo)
 
     # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
@@ -142,6 +147,7 @@ def init_app():
     subscription_bp.subscription_use_case = subscription_use_case
     payment_bp.payment_history_usecase = payment_history_usecase
     payment_history_bp.payment_history_usecase = payment_history_usecase
+    champion_user_bp.champion_user_use_case = champion_user_usecase
 
 
     # Register blueprints
@@ -155,6 +161,7 @@ def init_app():
     app.register_blueprint(subscription_bp, url_prefix='/api/v1/subscription')
     app.register_blueprint(payment_bp, url_prefix='/api/v1/payment')
     app.register_blueprint(payment_history_bp, url_prefix='/api/v1/history')
+    app.register_blueprint(champion_user_bp, url_prefix='/api/v1/championship')
 
     # jwt error handlers
     @jwt.expired_token_loader

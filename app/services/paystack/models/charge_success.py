@@ -44,9 +44,9 @@ class Plan(BaseModel):
 
 
 class Source(BaseModel):
-    type: str
-    source: str
-    entry_point: str
+    type: Optional[str] = None
+    source: Optional[str] = None
+    entry_point: Optional[str] = None
     identifier: Optional[str] = None
 
 
@@ -77,4 +77,4 @@ class ChargeSuccessData(BaseModel):
     paidAt: datetime
     requested_amount: int
     pos_transaction_data: Optional[Any] = None
-    source: Source
+    source: Optional[Source] = None

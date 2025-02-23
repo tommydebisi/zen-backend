@@ -56,4 +56,4 @@ class InvoiceUpdateData(BaseModel):
     subscription: Subscription
     customer: Customer
     transaction: Transaction
-    created_at: datetime
+    created_at: Optional[datetime] = None
