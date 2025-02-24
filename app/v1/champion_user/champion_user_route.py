@@ -56,7 +56,7 @@ def update_champion_user(champion_user_id: str):
         current_app.logger.error(f"Failed to update Champion user: {str(e)}")
         abort(500, 'Failed to update Champion user')
 
-@champion_user_bp.post('/pay/<champion_user_id>', strict_slashes=False)
+@champion_user_bp.put('/pay/<champion_user_id>', strict_slashes=False)
 def initialize_champion_user_payment(champion_user_id: str):
     try:
         data: Dict = request.get_json()
@@ -67,7 +67,7 @@ def initialize_champion_user_payment(champion_user_id: str):
 
 
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
-        success, resp_data = usecase.champion_user_payment(champion_user_id=champion_user_id, callback_url=callback_url)
+        success, resp_data = usecase.champion_user_payment(champion_user_id=champion_user_id, data=data)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400

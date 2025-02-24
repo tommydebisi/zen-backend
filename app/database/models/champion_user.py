@@ -14,18 +14,6 @@ class ChampionUser(BaseModel):
     PhoneNumber: str
     sex: Optional[str] = None
 
-    # Team/Club
-    association: Optional[str] = None
-    nationality: Optional[str] = None
-    language: Optional[str] = None
-
-    # Place of departure
-    state: Optional[str] = None
-    country: Optional[str] = None
-
-    # discipline
-    category: Optional[str] = None
-    distance: Optional[str] = None
 
     def to_bson(self) -> dict:
         """Convert model to BSON-compatible dictionary for MongoDB."""
@@ -37,17 +25,18 @@ class ChampionUser(BaseModel):
 
 class ChampionUserUpdate(BaseModel):
     # Team/Club
-    association: Optional[str] = None
-    nationality: Optional[str] = None
-    language: Optional[str] = None
+    Association: Optional[str] = None
+    Nationality: Optional[str] = None
+    Language: Optional[str] = None
 
     # Place of departure
-    state: Optional[str] = None
-    country: Optional[str] = None
+    Departure_state: Optional[str] = None
+    Departure_country: Optional[str] = None
 
     # discipline
-    category: Optional[str] = None
-    distance: Optional[str] = None
+    Category: Optional[str] = None
+    Distance: Optional[str] = None
+    Selection: Optional[str] = None
 
     def to_bson(self) -> dict:
         """Convert model to BSON-compatible dictionary for MongoDB."""
