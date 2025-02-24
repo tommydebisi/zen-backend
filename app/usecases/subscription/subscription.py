@@ -210,6 +210,7 @@ class SubscriptionUseCase:
                 callback_url=callback_url,
                 metadata={
                     "custom": {
+                        "type": "walkin",
                         "entry_date": entry_date
                     }
                 }

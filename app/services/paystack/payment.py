@@ -55,15 +55,16 @@ class PayStackPayment:
 
         # check if metadata is present, then it is a walkIn sub
         if type(success_data.metadata) is dict and success_data.metadata.get('custom'):
-            entry_date = success_data.metadata['custom'].get('entry_date')
-            walk_in_data = {
-                "email": success_data.customer.email,
-                "amount": success_data.amount // 100,
-                "entry_date": entry_date
-            }
+            if success_data.metadata['custom'].get('type') == "walkin":
+                entry_date = success_data.metadata['custom'].get('entry_date')
+                walk_in_data = {
+                    "email": success_data.customer.email,
+                    "amount": success_data.amount // 100,
+                    "entry_date": entry_date
+                }
 
-            parsed_walk_in_data = WalkIn(**walk_in_data)
-            walk_in_repo.create_walk_in(parsed_walk_in_data.to_bson())
+                parsed_walk_in_data = WalkIn(**walk_in_data)
+                walk_in_repo.create_walk_in(parsed_walk_in_data.to_bson())
 
             # update payment history
             history_data = {

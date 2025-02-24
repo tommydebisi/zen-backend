@@ -55,3 +55,24 @@ def update_champion_user(champion_user_id: str):
     except Exception as e:
         current_app.logger.error(f"Failed to update Champion user: {str(e)}")
         abort(500, 'Failed to update Champion user')
+
+@champion_user_bp.post('/pay/<champion_user_id>', strict_slashes=False)
+def initialize_champion_user_payment(champion_user_id: str):
+    try:
+        data: Dict = request.get_json()
+
+        callback_url = data.get('callback_url')
+        if not callback_url:
+            abort(400, 'call back url required')
+
+
+        usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
+        success, resp_data = usecase.champion_user_payment(champion_user_id=champion_user_id, callback_url=callback_url)
+
+        if not success:
+            return jsonify({"error": not success, "message": resp_data.get("message")}), 400
+
+        return jsonify({"error": not success, "message": resp_data.get('message'), "data": resp_data.get("data")}), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to initialize payment for Champion User: {str(e)}")
+        abort(500, 'Failed to initialize payment for Champion User')
