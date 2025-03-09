@@ -29,3 +29,8 @@ def serialize_document(document: Dict[str, Any]) -> Dict[str, Any]:
         elif isinstance(value, list):  # Process lists of documents
             document[key] = [serialize_document(item) if isinstance(item, dict) else item for item in value]
     return document
+
+
+# capitalize the first letter of a string
+def capitalize_first_letter(string: str) -> str:
+    return string[0].upper() + string[1:]

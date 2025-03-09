@@ -4,7 +4,7 @@ from pymongo.errors import PyMongoError
 from bson import ObjectId
 from typing import Dict, Any, Tuple
 from app.services.paystack.setup import paystack
-from datetime import datetime
+from uuid import uuid4
 
 
 class ChampionUserUseCase:
@@ -13,6 +13,8 @@ class ChampionUserUseCase:
 
     def create_champion_user(self, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Create a new champion user."""
+        # Generate unique id
+        data['unique_id'] = str(uuid4())[:8]
         champion_user_data = ChampionUser(**data)
 
         bson_data = champion_user_data.to_bson()
@@ -70,16 +72,25 @@ class ChampionUserUseCase:
                     "message": "Champion user not found."
                 }
             
-            if result_data.modified_count == 0:
-                return False, {
-                    "message": "No changes were made."
-                }
+            # if result_data.modified_count == 0:
+            #     return False, {
+            #         "message": "No changes were made."
+            #     }
 
             # get the callback_url
             callback_url = data.get('callback_url')
-            amount = 10000
+
             # get the champion_user making payment
             champion_user = self.champion_user_repo.get_by_id(champion_user_id=champion_user_id)
+
+            # check if official price differs from athlete price
+            amount = 40 if champion_user.get('isOfficial') else 50
+
+            # change amount based on country
+            amount = (amount * 1000) if champion_user.get('Departure_country') == 'Nigeria' else (amount * 1600)
+
+            # send email to champion_user
+            self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
 
             # initialize paystack payment
             response: Dict = paystack.transaction.initialize(
