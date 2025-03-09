@@ -30,14 +30,14 @@ class ChampionUserRepository:
         """Find a champoion user by query and delete the record."""
         return self.db.delete_one(ChampionUser.__name__, query)
     def send_welcome_email(self, champion_user: ChampionUser) -> None:
-        subject = "Thank You for Registering - Zen Archery Competition"
+        subject = "Thank You for Registering - Zen Archery Open Competition 2025"
         from_email = config.MAIL_DEFAULT_SENDER
         to_email = champion_user.email
 
         # Plain text content (fallback)
         text_content = f"""
         Hi {champion_user.firstName},
-        Thank you for registering for the Zen Archery Competition! We’re excited to have you join us for this incredible event.
+        Thank you for registering for the Zen Archery Open Competition 2025! We’re excited to have you join us for this incredible event.
         Your Unique ID: {champion_user.unique_id}
         Please keep this ID handy, as you may be asked to provide it during the event.
 
@@ -112,7 +112,7 @@ class ChampionUserRepository:
                     >
                         <strong>Hi {capitalize_first_letter(champion_user.firstName)},</strong>
                         <p>
-                        Thank you for registering for the Zen Archery Competition!
+                        Thank you for registering for the Zen Archery Open Competition 2025!
                         We’re excited to have you join us for this incredible event
                         </p>
                         <p>Your Unique ID: <span style="font-weight: 700">{champion_user.unique_id}</span></p>
