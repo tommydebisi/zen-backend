@@ -71,11 +71,6 @@ class ChampionUserUseCase:
                 return False, {
                     "message": "Champion user not found."
                 }
-            
-            # if result_data.modified_count == 0:
-            #     return False, {
-            #         "message": "No changes were made."
-            #     }
 
             # get the callback_url
             callback_url = data.get('callback_url')

@@ -13,7 +13,7 @@ class ChampionUser(BaseModel):
     image_url: Optional[str] = None
     PhoneNumber: str
     sex: Optional[str] = None
-    isOfficial: bool
+    isOfficial: Optional[bool] = True
     unique_id: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
