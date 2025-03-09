@@ -2,7 +2,7 @@ from app.database.base import Database
 from app.database.models.champion_user import ChampionUser
 from bson import ObjectId
 from typing import Dict, Any
-from flask_mailman import EmailMessage
+from flask_mailman import EmailMultiAlternatives
 from app.config import config
 from app.utils.utils import capitalize_first_letter
 
@@ -30,9 +30,11 @@ class ChampionUserRepository:
         """Find a champoion user by query and delete the record."""
         return self.db.delete_one(ChampionUser.__name__, query)
     def send_welcome_email(self, champion_user: ChampionUser) -> None:
-        subject = f"Thank You for Registering - Zen Archery Competition"
+        subject = "Thank You for Registering - Zen Archery Competition"
+        from_email = config.MAIL_DEFAULT_SENDER
+        to_email = champion_user.email
 
-        # Fall back plain text content
+        # Plain text content (fallback)
         text_content = f"""
         Hi {champion_user.firstName},
         Thank you for registering for the Zen Archery Competition! We’re excited to have you join us for this incredible event.
@@ -51,7 +53,7 @@ class ChampionUserRepository:
         """
 
         # HTML content
-        html_content = f"""
+        html_content = f"""\
         <!DOCTYPE html>
         <html>
         <head>
@@ -263,18 +265,11 @@ class ChampionUserRepository:
         </html>
         """
 
-        # Create the email message
-        email_msg = EmailMessage(
-            subject=subject,
-            body=text_content,  # Fallback plain text version
-            from_email=config.MAIL_DEFAULT_SENDER,  # Replace with your sender email
-            to=[champion_user.email],        # Replace with your recipient email
-            reply_to=[champion_user.email]
-        )
+        # ✅ Create an email message with text content
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
 
-        # Set HTML as the primary content type
-        email_msg.body = html_content  # Replace the body with HTML content
-        email_msg.content_subtype = "html"  # Mark this as HTML content
+        # ✅ Attach HTML content properly
+        email_msg.attach_alternative(html_content, "text/html")
 
-        # Send the email
+        # ✅ Send the email
         email_msg.send()
