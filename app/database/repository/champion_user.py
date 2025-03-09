@@ -211,13 +211,13 @@ class ChampionUserRepository:
                             If you have any questions or need assistance, our support
                             team is here to help. Contact us at
                             <a
-                                href="mailto:support@zenarchery.com"
+                                href="mailto:info@zenarchery.club"
                                 style="
                                 color: #0e2b41;
                                 font-weight: 700;
                                 text-decoration: none;
                                 "
-                                >support@zenarchery.com</a
+                                >info@zenarchery.club</a
                             >
                             or
                             <a
