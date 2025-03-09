@@ -221,13 +221,13 @@ class ChampionUserRepository:
                             >
                             or
                             <a
-                                href="tel:02018891809"
+                                href="tel:+2349134788226"
                                 style="
                                 color: #0e2b41;
                                 font-weight: 700;
                                 text-decoration: none;
                                 "
-                                >02018891809</a
+                                >+234 913 478 8226</a
                             >.
                             </td>
                         </tr>
