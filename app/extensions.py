@@ -3,6 +3,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_mailman import Mail
 import certifi
+import ssl
 
 from pymongo.errors import ServerSelectionTimeoutError
 
@@ -80,6 +81,7 @@ app = Flask(__name__)
 def init_app():
     # global database
     app.config.from_prefixed_env()
+    app.config["MAIL_SSL_CONTEXT"] = ssl.create_default_context()
     # Initialize Flask extensions
     mongo.init_app(app, tlsCAFile=certifi.where())
     jwt.init_app(app)
