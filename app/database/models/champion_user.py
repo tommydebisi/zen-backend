@@ -1,8 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Dict
+from typing import Optional
 from datetime import datetime
-from .objectid import PydanticObjectId
 
 
 class ChampionUser(BaseModel):
@@ -10,7 +9,7 @@ class ChampionUser(BaseModel):
     lastName: str
     email: str
     date: datetime
-    image_url: Optional[str] = None
+    image_url: str
     PhoneNumber: str
     sex: Optional[str] = None
     isOfficial: bool

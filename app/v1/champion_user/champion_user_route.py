@@ -11,6 +11,9 @@ champion_user_bp = Blueprint('champion_user', __name__)
 def create_champion_user():
     try:
         data: Dict = request.form.copy()
+        if data.get('Passport'):
+            data['image_url'] = data.get('Passport')
+            del data['Passport']
 
         # create champion user
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
