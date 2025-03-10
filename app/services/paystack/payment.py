@@ -2,7 +2,14 @@ from typing import Dict, Callable, Tuple, Any
 from flask import current_app
 from app.services.paystack.setup import paystack
 from app.services.paystack.models import ChargeSuccessData, SubscriptionCreateData, InvoiceUpdateData
-from app.extensions import UserRepository, SubscriptionRepository, PaymentHistoryRepository, PlanRepository, WalkInRepository
+from app.extensions import (
+    UserRepository,
+    SubscriptionRepository,
+    PaymentHistoryRepository,
+    PlanRepository,
+    WalkInRepository,
+    ChampionUserRepository
+    )
 from app.database.models.payment_history import PaymentHistory
 from app.database.models.walk_in import WalkIn
 from datetime import datetime
@@ -52,6 +59,7 @@ class PayStackPayment:
         payment_history_repo = PaymentHistoryRepository(PayStackPayment.get_db())
         plan_repo = PlanRepository(PayStackPayment.get_db())
         walk_in_repo = WalkInRepository(PayStackPayment.get_db())
+        champion_user_repo = ChampionUserRepository(PayStackPayment.get_db())
 
         # check if metadata is present, then it is a walkIn sub
         if type(success_data.metadata) is dict and success_data.metadata.get('custom'):
@@ -65,6 +73,12 @@ class PayStackPayment:
 
                 parsed_walk_in_data = WalkIn(**walk_in_data)
                 walk_in_repo.create_walk_in(parsed_walk_in_data.to_bson())
+            elif success_data.metadata['custom'].get('type') == "competition":
+                unique_id = success_data.metadata['custom'].get('unique_id')
+
+                # find and update champion user by unique id
+                champion_user_repo.find_and_update_champion_user({ "unique_id": unique_id }, { "status": "paid" })
+
 
             # update payment history
             history_data = {

@@ -13,7 +13,7 @@ class ChampionUser(BaseModel):
     image_url: Optional[str] = None
     PhoneNumber: str
     sex: Optional[str] = None
-    isOfficial: Optional[bool] = True
+    isOfficial: bool
     unique_id: str
     status: Optional[str] = "pending"
     created_at: datetime = Field(default_factory=datetime.now)
@@ -26,7 +26,7 @@ class ChampionUser(BaseModel):
         if data.get("_id") is None:
             data.pop("_id", None)
         return data
-    
+
 
 class ChampionUserUpdate(BaseModel):
     # Team/Club
@@ -42,8 +42,8 @@ class ChampionUserUpdate(BaseModel):
     Category: Optional[str] = None
     Distance: Optional[str] = None
     Selection: Optional[str] = None
-    updated_at: datetime = Field(default_factory=datetime.now)
     status: Optional[str] = None
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     def to_bson(self) -> dict:
         """Convert model to BSON-compatible dictionary for MongoDB."""

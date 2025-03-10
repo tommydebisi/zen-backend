@@ -1,9 +1,9 @@
 from flask import abort, jsonify, request, current_app, Blueprint
 from pydantic import ValidationError
-from app.utils.utils import validateEmail
 from typing import Dict
 import cloudinary.uploader as uploader
 from app.usecases import ChampionUserUseCase
+from app.utils.decorators import admin_required
 
 champion_user_bp = Blueprint('champion_user', __name__)
 
@@ -76,3 +76,36 @@ def initialize_champion_user_payment(champion_user_id: str):
     except Exception as e:
         current_app.logger.error(f"Failed to initialize payment for Champion User: {str(e)}")
         abort(500, 'Failed to initialize payment for Champion User')
+
+
+@champion_user_bp.get('/all', strict_slashes=False)
+@admin_required()
+def get_all_champion_users():
+    try:
+        usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
+        success, result_data = usecase.get_all_champion_users()
+
+        if not success:
+            return jsonify({"error": not success, "message": result_data.get("message")}), 400
+
+        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to get all Champion users: {str(e)}")
+        abort(500, 'Failed to get all Champion users')
+
+@champion_user_bp.put('/update/payment/<champion_user_id>', strict_slashes=False)
+@admin_required()
+def update_champion_user_payment_status(champion_user_id: str):
+    try:
+        data: Dict = request.get_json()
+
+        usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
+        success, resp_data = usecase.update_champion_user_payment_status(champion_user_id, data)
+
+        if not success:
+            return jsonify({"error": not success, "message": resp_data.get("message")}), 400
+
+        return jsonify({"error": not success, "message": resp_data.get("message")}), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to update Champion user payment status: {str(e)}")
+        abort(500, 'Failed to update Champion user payment status')

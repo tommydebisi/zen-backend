@@ -94,7 +94,8 @@ class ChampionUserUseCase:
                 callback_url=callback_url,
                 metadata={
                         "custom": {
-                            "type": "competion"
+                            "type": "competition",
+                            "unique_id": champion_user.get('unique_id')
                         }
                     }
             )
@@ -114,3 +115,32 @@ class ChampionUserUseCase:
             }
         except PyMongoError as e:
             raise RuntimeError(f"Failed to update Champion user: {str(e)}")
+
+    def get_all_champion_users(self) -> Tuple[bool, Dict[str, Any]]:
+        """Fetch all champion users."""
+        champion_users = self.champion_user_repo.get_all_champion_users()
+
+        return True, {
+            "message": "Champion users found.",
+            "data": champion_users
+        }
+    
+    def update_champion_user_payment_status(self, champion_user_id: str, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Update an champion user payment by ID.
+        """
+        try:   
+            edit_champion_user = ChampionUserUpdate(**data)
+            edit_data = edit_champion_user.to_bson()
+
+            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, { "status": edit_data.get('status') })
+            if result_data.matched_count == 0:
+                return False, {
+                    "message": "Champion user not found."
+                }
+            
+            return True, {
+                "message": "Champion user payment updated successfully."
+            }
+        except PyMongoError as e:
+            raise RuntimeError(f"Failed to update Champion user payment: {str(e)}")

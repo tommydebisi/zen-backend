@@ -14,11 +14,6 @@ class PaymentHistoryUseCase:
             Fetch all payment history by user
         """
         histories = self.payment_history_repo.all_payment_history_by_user_id(user_id=user_id)
-
-        if len(histories) < 1:
-            return False, {
-                "message": "Payment histories not found."
-            }
         
         return True, {
             "message": "Payment histories found.",
@@ -30,11 +25,6 @@ class PaymentHistoryUseCase:
             Fetch all payment history by user
         """
         histories = self.payment_history_repo.all_payment_history()
-
-        if len(histories) < 1:
-            return False, {
-                "message": "Payment histories not found."
-            }
         
         return True, {
             "message": "Payment histories found.",

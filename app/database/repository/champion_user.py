@@ -5,6 +5,7 @@ from typing import Dict, Any
 from flask_mailman import EmailMultiAlternatives
 from app.config import config
 from app.utils.utils import capitalize_first_letter
+from typing import List
 
 
 class ChampionUserRepository:
@@ -273,3 +274,20 @@ class ChampionUserRepository:
 
         # ✅ Send the email
         email_msg.send()
+
+    def get_all_champion_users(self) -> List[Dict[str, Any]]:
+        """Fetch all users."""
+        pipeline = [
+            {
+                "$project": {
+                "_id": 0,
+                "id": "$_id",
+                "imageUrl": "$image_url",
+                "fullName": { "$concat": ["$firstName", " ", "$lastName"] },
+                "email": 1,
+                "status": 1
+                }
+            }
+        ]
+
+        return self.db.aggregate(ChampionUser.__name__, pipeline=pipeline)
