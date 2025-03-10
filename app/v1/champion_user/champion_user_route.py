@@ -1,7 +1,6 @@
 from flask import abort, jsonify, request, current_app, Blueprint
 from pydantic import ValidationError
 from typing import Dict
-import cloudinary.uploader as uploader
 from app.usecases import ChampionUserUseCase
 from app.utils.decorators import admin_required
 
@@ -12,11 +11,6 @@ champion_user_bp = Blueprint('champion_user', __name__)
 def create_champion_user():
     try:
         data: Dict = request.form.copy()
-
-        image_file = request.files.get('Passport')
-        if image_file:
-            upload_result = uploader.upload(image_file)
-            data["image_url"] = upload_result.get('secure_url')
 
         # create champion user
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case

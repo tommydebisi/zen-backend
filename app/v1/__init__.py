@@ -9,3 +9,4 @@ from app.v1.subscription.subscription_route import subscription_bp
 from app.v1.paystack.paystack_route import payment_bp
 from app.v1.history.payment_history_route import payment_history_bp
 from app.v1.champion_user.champion_user_route import champion_user_bp
+from app.v1.file_upload.file_upload_route import file_upload_bp

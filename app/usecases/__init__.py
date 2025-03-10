@@ -8,3 +8,4 @@ from app.usecases.record.record import RecordUseCase
 from app.usecases.archer_rank.archer_rank import ArcherRankUseCase
 from app.usecases.payment.payment_history import PaymentHistoryUseCase
 from app.usecases.champion_user.champion_user import ChampionUserUseCase
+from app.usecases.file_upload.file_upload import FileUploadUseCase

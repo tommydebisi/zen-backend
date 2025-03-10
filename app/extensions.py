@@ -37,7 +37,8 @@ from app.usecases import (
     RecordUseCase,
     ArcherRankUseCase,
     PaymentHistoryUseCase,
-    ChampionUserUseCase
+    ChampionUserUseCase,
+    FileUploadUseCase
 )
 
 # Import blueprints
@@ -52,7 +53,8 @@ from app.v1 import (
     subscription_bp,
     payment_bp,
     payment_history_bp,
-    champion_user_bp
+    champion_user_bp,
+    file_upload_bp
 )
 
 
@@ -135,6 +137,7 @@ def init_app():
     archer_rank_use_case = ArcherRankUseCase(archer_rank_repo)
     payment_history_usecase = PaymentHistoryUseCase(payment_history_repo)
     champion_user_usecase = ChampionUserUseCase(champion_user_repo)
+    file_upload_usecase = FileUploadUseCase()
 
     # intialize blueprints with usecases
     auth_bp.user_use_case = user_use_case
@@ -150,6 +153,7 @@ def init_app():
     payment_bp.payment_history_usecase = payment_history_usecase
     payment_history_bp.payment_history_usecase = payment_history_usecase
     champion_user_bp.champion_user_use_case = champion_user_usecase
+    file_upload_bp.file_upload_use_case = file_upload_usecase
 
 
     # Register blueprints
@@ -164,6 +168,7 @@ def init_app():
     app.register_blueprint(payment_bp, url_prefix='/api/v1/payment')
     app.register_blueprint(payment_history_bp, url_prefix='/api/v1/history')
     app.register_blueprint(champion_user_bp, url_prefix='/api/v1/championship')
+    app.register_blueprint(file_upload_bp, url_prefix='/api/v1/file')
 
     # jwt error handlers
     @jwt.expired_token_loader
