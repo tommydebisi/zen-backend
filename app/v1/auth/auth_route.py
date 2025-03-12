@@ -8,7 +8,6 @@ from app.usecases import (
     TokenUseCase
 )
 from typing import Dict
-import cloudinary.uploader as uploader
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -32,10 +31,9 @@ def register(plan_id: str):
 
         data['plan_id'] = plan_id
 
-        image_file = request.files.get('Passport')
-        if image_file:
-            upload_result = uploader.upload(image_file)
-            data["image_url"] = upload_result.get('secure_url')
+        if data.get('Passport'):
+            data['image_url'] = data.get('Passport')
+            del data['Passport']
 
 
         # register user
