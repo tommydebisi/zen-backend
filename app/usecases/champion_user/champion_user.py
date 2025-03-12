@@ -1,5 +1,6 @@
-from app.database import ChampionUserRepository
+from app.database import ChampionUserRepository, PaymentHistoryRepository
 from app.database.models.champion_user import ChampionUser, ChampionUserUpdate
+from app.database.models.payment_history import PaymentHistory
 from pymongo.errors import PyMongoError
 from bson import ObjectId
 from typing import Dict, Any, Tuple
@@ -8,8 +9,9 @@ from uuid import uuid4
 
 
 class ChampionUserUseCase:
-    def __init__(self, champion_user_repo: ChampionUserRepository):
+    def __init__(self, champion_user_repo: ChampionUserRepository, payment_history_repo: PaymentHistoryRepository):
         self.champion_user_repo= champion_user_repo
+        self.payment_history_repo = payment_history_repo
 
     def create_champion_user(self, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Create a new champion user."""
@@ -40,6 +42,22 @@ class ChampionUserUseCase:
         try:   
             edit_champion_user = ChampionUserUpdate(**data)
             edit_data = edit_champion_user.to_bson()
+
+            # get champion user by ID
+            champion_user = self.champion_user_repo.get_by_id(champion_user_id=champion_user_id)
+            if not champion_user:
+                return False, {
+                    "message": "Champion user not found."
+                }
+            
+            # check if official price differs from athlete price
+            amount = 40 if champion_user.get('isOfficial') else 50
+
+            # change amount based on country
+            amount = (amount * 1000) if edit_data.get('Departure_country') == 'Nigeria' else (amount * 1600)
+
+            # update amount in champion_user
+            edit_data['amount'] = amount
 
             result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, edit_data)
             if result_data.matched_count == 0:
@@ -78,11 +96,12 @@ class ChampionUserUseCase:
             # get the champion_user making payment
             champion_user = self.champion_user_repo.get_by_id(champion_user_id=champion_user_id)
 
-            # check if official price differs from athlete price
-            amount = 40 if champion_user.get('isOfficial') else 50
-
-            # change amount based on country
-            amount = (amount * 1000) if champion_user.get('Departure_country') == 'Nigeria' else (amount * 1600)
+            if not champion_user:
+                return False, {
+                    "message": "Champion user not found."
+                }
+            
+            amount = champion_user.get('amount')
 
             # send email to champion_user
             self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
@@ -125,19 +144,35 @@ class ChampionUserUseCase:
             "data": champion_users
         }
     
-    def update_champion_user_payment_status(self, champion_user_id: str, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+    def update_champion_user_payment_status(self, champion_user_id: str) -> Tuple[bool, Dict[str, Any]]:
         """
         Update an champion user payment by ID.
         """
-        try:   
-            edit_champion_user = ChampionUserUpdate(**data)
-            edit_data = edit_champion_user.to_bson()
+        try:
+            # get the champion_user making payment
+            champion_user_data = self.champion_user_repo.get_by_id(champion_user_id=champion_user_id)
+            if not champion_user_data:
+                return False, {
+                    "message": "Champion user not found."
+                }
 
-            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, { "status": edit_data.get('status') })
+            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, { "status": "paid" })
             if result_data.matched_count == 0:
                 return False, {
                     "message": "Champion user not found."
                 }
+            
+
+            # save payment history
+            history_data = {
+                "email": champion_user_data.get('email'),
+                "status": "success",
+                "amount": champion_user_data.get('amount'),
+            }
+
+            payment_history = PaymentHistory(**history_data)
+            bson_data = payment_history.to_bson()
+            self.payment_history_repo.create_payment_history(bson_data)
             
             return True, {
                 "message": "Champion user payment updated successfully."

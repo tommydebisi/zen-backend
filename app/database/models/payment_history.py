@@ -6,9 +6,9 @@ from datetime import datetime
 
 class PaymentHistory(BaseModel):
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
-    user_id: PydanticObjectId = Field(None, alias="user_id")
-    plan_id: PydanticObjectId = Field(None, alias="plan_id")
-    amount: int
+    user_id: Optional[PydanticObjectId] = Field(None, alias="user_id")
+    plan_id: Optional[PydanticObjectId] = Field(None, alias="plan_id")
+    amount: Optional[int] = None
     status: str
     reference: Optional[str] = None
     name: Optional[str] = None

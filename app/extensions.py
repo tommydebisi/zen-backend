@@ -136,7 +136,7 @@ def init_app():
     record_use_case = RecordUseCase(record_repo)
     archer_rank_use_case = ArcherRankUseCase(archer_rank_repo)
     payment_history_usecase = PaymentHistoryUseCase(payment_history_repo)
-    champion_user_usecase = ChampionUserUseCase(champion_user_repo)
+    champion_user_usecase = ChampionUserUseCase(champion_user_repo, payment_history_repo)
     file_upload_usecase = FileUploadUseCase()
 
     # intialize blueprints with usecases

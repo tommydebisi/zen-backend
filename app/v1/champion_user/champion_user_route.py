@@ -94,10 +94,8 @@ def get_all_champion_users():
 @admin_required()
 def update_champion_user_payment_status(champion_user_id: str):
     try:
-        data: Dict = request.get_json()
-
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
-        success, resp_data = usecase.update_champion_user_payment_status(champion_user_id, data)
+        success, resp_data = usecase.update_champion_user_payment_status(champion_user_id)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400

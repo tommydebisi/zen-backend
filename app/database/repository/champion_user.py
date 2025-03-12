@@ -285,7 +285,8 @@ class ChampionUserRepository:
                 "imageUrl": "$image_url",
                 "fullName": { "$concat": ["$firstName", " ", "$lastName"] },
                 "email": 1,
-                "status": 1
+                "status": 1,
+                "Association": 1,
                 }
             }
         ]
