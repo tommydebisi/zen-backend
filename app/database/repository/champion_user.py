@@ -15,6 +15,10 @@ class ChampionUserRepository:
     def get_by_id(self, champion_user_id: str):
         """Fetch a user by ID."""
         return self.db.get_one(ChampionUser.__name__, {"_id": ObjectId(champion_user_id)})
+
+    def get_by_email(self, champion_user_email: str):
+        """Fetch a user by email."""
+        return self.db.get_one(ChampionUser.__name__, { "email": champion_user_email })
     
     def create_champion_user(self, data: Dict):
         """Insert a new user record."""

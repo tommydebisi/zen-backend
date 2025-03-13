@@ -19,6 +19,15 @@ class ChampionUserUseCase:
         data['unique_id'] = str(uuid4())[:8]
         champion_user_data = ChampionUser(**data)
 
+        # get champion user with email and see if it already exists 
+        existing_champion_data = self.champion_user_repo.get_by_email(champion_user_email=champion_user_data.email)
+        if existing_champion_data:
+            return False, {
+                "message": "Champion user already exists.",
+                "status": 409
+            }
+        
+
         bson_data = champion_user_data.to_bson()
 
         # Insert into database

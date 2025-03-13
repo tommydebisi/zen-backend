@@ -18,7 +18,7 @@ def create_champion_user():
         # create champion user
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
         success, result_data = usecase.create_champion_user(data)
-        status_code = 201 if success else 400
+        status_code = 201 if success else result_data.get('status', 400)
 
         if not success:
             return jsonify({"error": not success, "message": result_data.get("message")}), status_code
