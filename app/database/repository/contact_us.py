@@ -1,5 +1,7 @@
 from app.database.models.contact_us import ContactUs
-from flask_mailman import EmailMessage, Mail
+from flask_mailman import EmailMultiAlternatives, Mail
+from app.config import config
+from app.utils.utils import capitalize_first_letter
 
 
 class ContactUsRepository:
@@ -7,10 +9,15 @@ class ContactUsRepository:
         self.mail = mail
 
     def send_email(self, contact_message: ContactUs) -> None:
-        subject = f"New Contact Us Message from {contact_message.first_name} {contact_message.last_name}"
+        first_name = capitalize_first_letter(contact_message.first_name)
+        last_name = capitalize_first_letter(contact_message.last_name)
+
+        subject = f"New Contact Us Message from {first_name} {last_name}"
+        from_email = config.MAIL_DEFAULT_SENDER
+        to_email = contact_message.email
         text_content = f"""
         New Contact Us Message
-        Name: {contact_message.first_name} {contact_message.last_name}
+        Name: {first_name} {last_name}
         Phone Number: {contact_message.phone_number}
         Email: {contact_message.email}
         Message: {contact_message.message}
@@ -84,18 +91,11 @@ class ContactUsRepository:
         </html>
         """
 
-        # Create the email message
-        email_msg = EmailMessage(
-            subject=subject,
-            body=text_content,  # Fallback plain text version
-            from_email="noreply@yourdomain.com",  # Replace with your sender email
-            to=["support@yourdomain.com"],        # Replace with your recipient email
-            reply_to=[contact_message.email]
-        )
+        # ✅ Create an email message with text content
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
 
-        # Set HTML as the primary content type
-        email_msg.body = html_content  # Replace the body with HTML content
-        email_msg.content_subtype = "html"  # Mark this as HTML content
+        # ✅ Attach HTML content properly
+        email_msg.attach_alternative(html_content, "text/html")
 
-        # Send the email
+        # ✅ Send the email
         email_msg.send()
