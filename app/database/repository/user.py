@@ -143,8 +143,8 @@ class UserRepository:
                         </li>
                         <li style="margin: 5px 0">
                             Join our members' group:
-                            <a href="https://zenarchery.club/Pricing"
-                            >https://zenarchery.club/Pricing
+                            <a href="https://zenarchery.club/ranking&records"
+                            >https://zenarchery.club/ranking&records
                             </a>
                         </li>
                         <li>

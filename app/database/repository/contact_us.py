@@ -14,7 +14,7 @@ class ContactUsRepository:
 
         subject = f"New Contact Us Message from {first_name} {last_name}"
         from_email = config.MAIL_DEFAULT_SENDER
-        to_email = contact_message.email
+        to_email = config.MAIL_DEFAULT_SENDER
         text_content = f"""
         New Contact Us Message
         Name: {first_name} {last_name}
