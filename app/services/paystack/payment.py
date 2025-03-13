@@ -78,48 +78,69 @@ class PayStackPayment:
 
                 # find and update champion user by unique id
                 champion_user_repo.find_and_update_champion_user({ "unique_id": unique_id }, { "status": "paid" })
+            elif success_data.metadata['custom'].get('type') == "subscription":
+                plan_code = success_data.metadata['custom'].get('plan_code')
+                customer_code = success_data.metadata['custom'].get('customer_code')
 
+                # create a subscription for the user
+                paystack.subscription.create(
+                    customer=customer_code,
+                    plan=plan_code,
+                    authorization=success_data.authorization.authorization_code
+                )
 
-            # update payment history
-            history_data = {
-                "amount": success_data.amount,
-                "email": success_data.customer.email,
-                "reference": success_data.reference,
-                "payment_date": success_data.paid_at,
-                "status": success_data.status
-            }
-            history_parsed_data = PaymentHistory(**history_data)
+                # get the user by customer id
+                user_data = user_repo.get_by_customer_code(customer_code)
 
-            # update the paymentHistory
-            result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+                if user_data.get('status') == 'Payment':
+                    # find and update the user to done
+                    result = user_repo.find_and_update_user({ "customer_code": customer_code }, 
+                                                    {
+                                                        "auth_code": success_data.authorization.authorization_code,
+                                                        "status": "done"
+                                                    })
+                    if result.matched_count == 0:
+                            current_app.logger.info(f"Subscription not found.")
+                            return False, {"message": "Subscription not found."}
+
+                # find plan by plan code
+                plan_paid_for = plan_repo.get_by_plan_code(plan_code=plan_code)
+
+                history_data = {
+                        "amount": success_data.amount,
+                        "name": f"{user_data.get('firstName')} {user_data.get('lastName')}",
+                        "reference": success_data.reference,
+                        "payment_date": success_data.paid_at,
+                        "status": success_data.status,
+                        "user_id": user_data.get('_id'),
+                        "plan_id": plan_paid_for.get('_id')
+                    }
+                history_parsed_data = PaymentHistory(**history_data)
+
+                # update the paymentHistory
+                result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+
+            if success_data.metadata['custom'].get('type') != "subscription":
+                # update payment history
+                history_data = {
+                    "amount": success_data.amount,
+                    "email": success_data.customer.email,
+                    "reference": success_data.reference,
+                    "payment_date": success_data.paid_at,
+                    "status": success_data.status
+                }
+                history_parsed_data = PaymentHistory(**history_data)
+
+                # update the paymentHistory
+                result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+
             return True, {
-                "message": "Walk-in payment made"
+                "message": "Customer made a payment!"
             }
 
         # get the user by customer id
         user_data = user_repo.get_by_customer_code(success_data.customer.customer_code)
 
-        if user_data.get('status') == 'Payment':
-            # find and update the user to done
-            result = user_repo.find_and_update_user({ "customer_code": success_data.customer.customer_code }, 
-                                            {
-                                                "auth_code": success_data.authorization.authorization_code,
-                                                "status": "done"
-                                            })
-            if result.matched_count == 0:
-                    return False, {"message": "Subscription not found."}
-
-            # also update the plan by remove the registration fee
-            new_reg = plan_repo.get_by_registration()
-            if new_reg:
-                new_amount: int = new_reg.get('Price')
-
-                plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'Price': success_data.plan.amount - new_amount })
-                paystack.plan.update(
-                    plan_id=success_data.plan.plan_code,
-                    amount=success_data.plan.amount-new_amount
-                )
-        
         # find plan by plan code
         plan_paid_for = plan_repo.get_by_plan_code(plan_code=success_data.plan.plan_code)
 
@@ -136,9 +157,11 @@ class PayStackPayment:
 
         # update the paymentHistory
         result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+
         return True, {
             "message": "Customer made a payment!"
         }
+
     @staticmethod
     def handle_subscription_create(data: Dict) -> Tuple[bool, Dict[str, Any]]:
         """

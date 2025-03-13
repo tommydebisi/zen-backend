@@ -55,8 +55,6 @@ def payment_webhook():
         event_type = event_data.get("event")
         event_data = event_data.get("data")
 
-        print(f"Event type {event_type}")
-
         # handle events
         success, resp_data = PayStackPayment.paymentHandler(event_type=event_type, data=event_data)
         # print(event_type)

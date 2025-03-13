@@ -41,24 +41,25 @@ class SubscriptionUseCase:
 
         old_amount = plan_data.get('Price')
 
-
         new_reg = self.plan_repo.get_by_registration()
+        new_amount = 0
         if new_reg:
             new_amount: int = new_reg.get('Price')
-            print(new_amount)
-
-            self.plan_repo.find_and_update_plan({ '_id': user_data.get('plan_id') }, { 'Price': old_amount + new_amount })
-            response: Dict = paystack.plan.update(
-                plan_id=plan_data.get('plan_code'),
-                amount=old_amount+new_amount
-            )
+            
+        new_amount += old_amount
 
         # initialize paystack payment
         response: Dict = paystack.transaction.initialize(
-            plan=plan_data.get('plan_code'),
             email=user_data.get('email'),
             amount=new_amount,
-            callback_url=callback_url
+            callback_url=callback_url,
+            metadata={
+                "custom": {
+                    "type": "subscription",
+                    "plan_code": plan_data.get('plan_code'),
+                    "customer_code": user_data.get('customer_code')
+                }
+            }
         )
 
         if not response.get('status'):

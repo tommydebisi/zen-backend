@@ -54,6 +54,9 @@ class UserUseCase:
 
         # Insert into database
         result_id = self.user_repo.create_user(user_data.to_bson())
+        
+        # send welcome email
+        self.user_repo.send_welcome_email(user_data)
 
         # # Fetch the inserted record
         result_data = self.user_repo.get_by_id(result_id)
