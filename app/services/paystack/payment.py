@@ -134,6 +134,9 @@ class PayStackPayment:
                 # update the paymentHistory
                 result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
 
+            # send payment confirmation mail
+            payment_history_repo.send_payment_confirmation_email(success_data.customer.email, success_data.amount)
+
             return True, {
                 "message": "Customer made a payment!"
             }

@@ -17,12 +17,15 @@ def register(plan_id: str):
     try:
         data: Dict = request.form.copy()
 
-        email = data.get('email')
         password = data.get('Password')
 
         #  Dont permit user to register with admin role
         if data.get('role') == 'admin':
             abort(400, 'Invalid role')
+
+        # clean email
+        data['email'] = data.get("email").lower().strip()
+        email = data.get('email')
 
         if not email or not password:
             abort(400, 'email and Password are required')
@@ -30,6 +33,8 @@ def register(plan_id: str):
             abort(400, 'Invalid email address')
 
         data['plan_id'] = plan_id
+        data['firstName'] = data.get("firstName").lower().strip()
+        data['lastName'] = data.get("lastName").lower().strip()
 
         if data.get('Passport'):
             data['image_url'] = data.get('Passport')

@@ -11,6 +11,10 @@ champion_user_bp = Blueprint('champion_user', __name__)
 def create_champion_user():
     try:
         data: Dict = request.form.copy()
+        data['firstName'] = data.get('firstName').lower().strip()
+        data['lastName'] = data.get('lastName').lower().strip()
+        data['email'] = data.get('email').lower().strip()
+
         if data.get('Passport'):
             data['image_url'] = data.get('Passport')
             del data['Passport']
