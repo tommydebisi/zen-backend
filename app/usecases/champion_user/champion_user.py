@@ -63,7 +63,7 @@ class ChampionUserUseCase:
             amount = 40 if champion_user.get('isOfficial') else 50
 
             # change amount based on country
-            amount = (amount * 1000) if edit_data.get('Departure_country') == 'Nigeria' else (amount * 1600)
+            amount = (amount * 1000) if edit_data.get('Departure_country').lower() == 'nigeria' else (amount * 1600)
 
             # update amount in champion_user
             edit_data['amount'] = amount

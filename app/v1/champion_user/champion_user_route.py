@@ -38,7 +38,10 @@ def create_champion_user():
 @champion_user_bp.put('/update/<champion_user_id>', strict_slashes=False)
 def update_champion_user(champion_user_id: str):
     try:
-        data = request.get_json()
+        data: Dict = request.get_json()
+
+        data["Departure_country"] = data.get("Departure_country").strip()
+        data["Departure_state"] = data.get("Departure_state").strip()
 
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
         success, resp_data = usecase.update_champion_user(champion_user_id, data)
