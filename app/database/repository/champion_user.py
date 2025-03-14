@@ -292,6 +292,8 @@ class ChampionUserRepository:
                 "status": 1,
                 "Association": 1,
                 "Category": 1,
+                "isOfficial": 1,
+                "PhoneNumber": 1,
                 }
             }
         ]
