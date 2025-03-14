@@ -61,26 +61,35 @@ class PayStackPayment:
         walk_in_repo = WalkInRepository(PayStackPayment.get_db())
         champion_user_repo = ChampionUserRepository(PayStackPayment.get_db())
 
+        first_name = ""
+
         # check if metadata is present, then it is a walkIn sub
         if type(success_data.metadata) is dict and success_data.metadata.get('custom'):
             if success_data.metadata['custom'].get('type') == "walkin":
                 entry_date = success_data.metadata['custom'].get('entry_date')
+                first_name = success_data.metadata['custom'].get('first_name')
+                last_name = success_data.metadata['custom'].get('last_name')
+
                 walk_in_data = {
                     "email": success_data.customer.email,
                     "amount": success_data.amount // 100,
-                    "entry_date": entry_date
+                    "entry_date": entry_date,
+                    "first_name": first_name,
+                    "last_name": last_name
                 }
 
                 parsed_walk_in_data = WalkIn(**walk_in_data)
                 walk_in_repo.create_walk_in(parsed_walk_in_data.to_bson())
             elif success_data.metadata['custom'].get('type') == "competition":
                 unique_id = success_data.metadata['custom'].get('unique_id')
+                first_name = success_data.metadata['custom'].get('first_name')
 
                 # find and update champion user by unique id
                 champion_user_repo.find_and_update_champion_user({ "unique_id": unique_id }, { "status": "paid" })
             elif success_data.metadata['custom'].get('type') == "subscription":
                 plan_code = success_data.metadata['custom'].get('plan_code')
                 customer_code = success_data.metadata['custom'].get('customer_code')
+                first_name = success_data.metadata['custom'].get('first_name')
 
                 # create a subscription for the user
                 paystack.subscription.create(
@@ -119,6 +128,8 @@ class PayStackPayment:
 
                 # update the paymentHistory
                 result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+            elif success_data.metadata['custom'].get('type') == "upgrade":
+                first_name = success_data.metadata['custom'].get('first_name')
 
             if success_data.metadata['custom'].get('type') != "subscription":
                 # update payment history
@@ -135,31 +146,27 @@ class PayStackPayment:
                 result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
 
             # send payment confirmation mail
-            payment_history_repo.send_payment_confirmation_email(success_data.customer.email, success_data.amount)
+            payment_history_repo.send_payment_confirmation_email(success_data.customer.email, success_data.amount, first_name)
 
             return True, {
                 "message": "Customer made a payment!"
             }
-
-        # get the user by customer id
-        user_data = user_repo.get_by_customer_code(success_data.customer.customer_code)
-
-        # find plan by plan code
-        plan_paid_for = plan_repo.get_by_plan_code(plan_code=success_data.plan.plan_code)
-
+        
+        # from auto-renewal
         history_data = {
-                "amount": success_data.amount,
-                "name": f"{success_data.customer.first_name} {success_data.customer.last_name}",
-                "reference": success_data.reference,
-                "payment_date": success_data.paid_at,
-                "status": success_data.status,
-                "user_id": user_data.get('_id'),
-                "plan_id": plan_paid_for.get('_id')
-            }
+            "amount": success_data.amount,
+            "email": success_data.customer.email,
+            "reference": success_data.reference,
+            "payment_date": success_data.paid_at,
+            "status": success_data.status
+        }
         history_parsed_data = PaymentHistory(**history_data)
 
         # update the paymentHistory
         result = payment_history_repo.create_payment_history(history_parsed_data.to_bson())
+
+        # send payment confirmation mail
+        payment_history_repo.send_payment_confirmation_email(success_data.customer.email, success_data.amount, first_name)
 
         return True, {
             "message": "Customer made a payment!"

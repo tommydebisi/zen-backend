@@ -57,7 +57,8 @@ class SubscriptionUseCase:
                 "custom": {
                     "type": "subscription",
                     "plan_code": plan_data.get('plan_code'),
-                    "customer_code": user_data.get('customer_code')
+                    "customer_code": user_data.get('customer_code'),
+                    "first_name": user_data.get('firstName')
                 }
             }
         )
@@ -157,7 +158,13 @@ class SubscriptionUseCase:
             plan=plan_data.get('plan_code'),
             email=user_data.get('email'),
             amount=plan_data.get('Price') * 100,
-            callback_url=callback_url
+            callback_url=callback_url,
+            metadata={
+                "custom": {
+                    "type": "upgrade",
+                    "first_name": user_data.get('firstName'),
+                }
+            }
             
         )
 
@@ -201,10 +208,23 @@ class SubscriptionUseCase:
             "status": 200
         }
     
-    def initialize_payment(self, amount: int, email: str, callback_url: str, entry_date: datetime) -> Tuple[bool, Dict[str, Any]]:
+    def initialize_payment(self, data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """
             Initializes a payment
         """
+        callback_url = data.get('callback_url')
+        amount = data.get('amount')
+        email = data.get('email')
+        entry_date = data.get('entry_date')
+        full_name: str = data.get('fullName').strip()
+        
+        list_of_names = full_name.split()
+        first_name, last_name = "", ""
+        if len(list_of_names) == 1:
+            first_name = list_of_names[0]
+        else:
+            first_name, last_name = list_of_names[0], list_of_names[1]
+
         response: Dict = paystack.transaction.initialize(
                 email=email,
                 amount=amount * 100,
@@ -212,7 +232,9 @@ class SubscriptionUseCase:
                 metadata={
                     "custom": {
                         "type": "walkin",
-                        "entry_date": entry_date
+                        "entry_date": entry_date,
+                        "first_name": first_name,
+                        "last_name": last_name
                     }
                 }
             )

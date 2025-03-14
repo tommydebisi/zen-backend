@@ -123,7 +123,8 @@ class ChampionUserUseCase:
                 metadata={
                         "custom": {
                             "type": "competition",
-                            "unique_id": champion_user.get('unique_id')
+                            "unique_id": champion_user.get('unique_id'),
+                            "first_name": champion_user.get('firstName')
                         }
                     }
             )

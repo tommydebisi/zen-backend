@@ -93,6 +93,7 @@ def initialize_payment():
         amount = data.get('amount')
         email = data.get('email')
         entry_date = data.get('entry_date')
+        full_name = data.get('fullName')
 
 
         if not callback_url:
@@ -103,9 +104,11 @@ def initialize_payment():
             abort(400, 'entry date required')
         if not email:
             abort(400, 'email required')
+        if not full_name:
+            abort(400, 'fullName required')
 
         usecase: SubscriptionUseCase = subscription_bp.subscription_use_case
-        success, resp_data = usecase.initialize_payment(amount, email, callback_url, entry_date)
+        success, resp_data = usecase.initialize_payment(data)
 
         if not success:
             return jsonify({"error": not success, "message": resp_data.get("message")}), 400

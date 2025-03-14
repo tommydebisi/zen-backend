@@ -10,6 +10,8 @@ class WalkIn(BaseModel):
     email: str
     entry_date: datetime
     amount: int
+    first_name: str
+    last_name: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

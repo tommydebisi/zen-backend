@@ -107,7 +107,7 @@ class UserRepository:
                     <!-- Greeting Section -->
                     <tr>
                     <td style="font-size: 14px; color: #333; padding: 20px">
-                        <strong>Hi {user.firstName},</strong>
+                        <strong>Hi {capitalize_first_letter(user.firstName)},</strong>
                         <p>
                         We’re thrilled to have you join the Zen Archery family!
                         Whether you’re a seasoned archer or just starting out, you’re

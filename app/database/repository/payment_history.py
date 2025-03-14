@@ -100,17 +100,18 @@ class PaymentHistoryRepository:
 
         return self.db.aggregate(PaymentHistory.__name__, pipeline)
     
-    def send_payment_confirmation_email(self, customer_email: str, amount: int):
+    def send_payment_confirmation_email(self, customer_email: str, amount: int, first_name: str):
         """
             payment confirmation email
         """
         subject = "Payment Confirmed - Zen Archery Club"
         from_email = config.MAIL_DEFAULT_SENDER
         to_email = customer_email
+        cap_first_name = capitalize_first_letter("archer" if not first_name else first_name)
 
         # fallback
         text_content = f"""\
-        Dear Archer,  
+        Dear {cap_first_name},  
         Thank you for your payment to **Zen Archery Club**. Your transaction was successful, and we’ve received your payment of {amount}
         If you have any questions or need further assistance, feel free to reach out to us at {from_email} or call us at [phone number].  
 
@@ -178,7 +179,7 @@ class PaymentHistoryRepository:
                         padding: 20px 30px 0px 20px;
                         "
                     >
-                        <strong>Dear Archer,</strong>
+                        <strong>Dear {cap_first_name},</strong>
                         <p>Thank you for your payment to Zen Archery Club.</p>
                         <p>
                         Your transaction was successful, and we’ve received your
