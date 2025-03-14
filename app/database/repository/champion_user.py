@@ -291,6 +291,7 @@ class ChampionUserRepository:
                 "email": 1,
                 "status": 1,
                 "Association": 1,
+                "Category": 1,
                 }
             }
         ]
