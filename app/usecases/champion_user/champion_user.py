@@ -92,12 +92,6 @@ class ChampionUserUseCase:
         try:
             edit_champion_user = ChampionUserUpdate(**data)
             edit_data = edit_champion_user.to_bson()
-            
-            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, edit_data)
-            if result_data.matched_count == 0:
-                return False, {
-                    "message": "Champion user not found."
-                }
 
             # get the callback_url
             callback_url = data.get('callback_url')
@@ -111,6 +105,17 @@ class ChampionUserUseCase:
                 }
             
             amount = champion_user.get('amount')
+            number_of_categories = len(edit_champion_user.Category)
+            new_amount = number_of_categories * amount
+
+            if number_of_categories > 1:
+                edit_data['amount'] = new_amount
+
+            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, edit_data)
+            if result_data.matched_count == 0:
+                return False, {
+                    "message": "Champion user not found."
+                }
 
             # send email to champion_user
             self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
@@ -118,7 +123,7 @@ class ChampionUserUseCase:
             # initialize paystack payment
             response: Dict = paystack.transaction.initialize(
                 email=champion_user.get('email'),
-                amount=amount*100,
+                amount=new_amount*100,
                 callback_url=callback_url,
                 metadata={
                         "custom": {
