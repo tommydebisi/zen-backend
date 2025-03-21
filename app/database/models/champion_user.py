@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from typing import Optional, Dict, List
 from datetime import datetime
 
 
@@ -38,8 +38,7 @@ class ChampionUserUpdate(BaseModel):
     Departure_country: Optional[str] = None
 
     # discipline
-    Category: Optional[str] = None
-    Distance: Optional[str] = None
+    Category: Optional[List[Dict[str, str]]] = None
     Selection: Optional[str] = None
     status: Optional[str] = None
     updated_at: datetime = Field(default_factory=datetime.now)
