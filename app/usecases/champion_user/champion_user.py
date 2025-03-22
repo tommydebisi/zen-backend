@@ -105,25 +105,27 @@ class ChampionUserUseCase:
                 }
             
             amount = champion_user.get('amount')
-            number_of_categories = len(edit_champion_user.Category)
-            new_amount = number_of_categories * amount
+            if champion_user.get('status') != 'payment':
+                number_of_categories = len(edit_champion_user.Category)
+                amount *= number_of_categories
 
-            if number_of_categories > 1:
-                edit_data['amount'] = new_amount
+                if number_of_categories > 1:
+                    edit_data['amount'] = amount
+                edit_data['status'] = 'payment'
 
-            result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, edit_data)
-            if result_data.matched_count == 0:
-                return False, {
-                    "message": "Champion user not found."
-                }
+                result_data = self.champion_user_repo.find_and_update_champion_user({"_id": ObjectId(champion_user_id)}, edit_data)
+                if result_data.matched_count == 0:
+                    return False, {
+                        "message": "Champion user not found."
+                    }
 
-            # send email to champion_user
-            self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
+                # send email to champion_user
+                self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
 
             # initialize paystack payment
             response: Dict = paystack.transaction.initialize(
                 email=champion_user.get('email'),
-                amount=new_amount*100,
+                amount=amount*100,
                 callback_url=callback_url,
                 metadata={
                         "custom": {
