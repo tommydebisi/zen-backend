@@ -223,7 +223,7 @@ class SubscriptionUseCase:
         number_of_people = self.walk_in_repo.get_walkin_count_pipeline(entry_date= datetime.strptime(entry_date, "%Y-%m-%dT%H:%M:%SZ"))
         if len(number_of_people) != 0 and number_of_people[0].get('total_walkins') == 6:
             return False, {
-                "message": "Number of people exceeded",
+                "message": "Fully booked for session",
                 "status": 400
             }
         
@@ -253,6 +253,10 @@ class SubscriptionUseCase:
                     "message": response.get('message'),
                     "status": 400
                 }
+        return False, {
+                "message": "Fully booked for session",
+                "status": 400
+            }
         
         response_data: Dict = response.get('data')
         return True, {
