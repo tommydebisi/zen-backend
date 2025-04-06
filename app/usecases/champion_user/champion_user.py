@@ -26,7 +26,7 @@ class ChampionUserUseCase:
             # check if status is paymennt
             if existing_champion_data.get('status') == 'payment':
                 return False, {
-                    "message": "Champion user already exists with payment status.",
+                    "message": "Registration completed",
                     "status": 409
                 }
             del bson_data['created_at']
