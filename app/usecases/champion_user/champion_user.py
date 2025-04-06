@@ -119,8 +119,6 @@ class ChampionUserUseCase:
                         "message": "Champion user not found."
                     }
 
-                # send email to champion_user
-                self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user))
 
             # initialize paystack payment
             response: Dict = paystack.transaction.initialize(
@@ -140,8 +138,11 @@ class ChampionUserUseCase:
                 return False, {
                     "message": response.get('message')
                 }
-            
             response_data: Dict = response.get('data')
+
+            # send email to champion_user
+            self.champion_user_repo.send_welcome_email(ChampionUser(**champion_user), response_data.get('authorization_url'))
+            
             return True, {
                 "message": response.get('message'),
                 "data": {

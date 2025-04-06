@@ -34,7 +34,7 @@ class ChampionUserRepository:
     def find_and_delete_champion_user(self, query: Dict[str, Any]):
         """Find a champoion user by query and delete the record."""
         return self.db.delete_one(ChampionUser.__name__, query)
-    def send_welcome_email(self, champion_user: ChampionUser) -> None:
+    def send_welcome_email(self, champion_user: ChampionUser, authorization_url: str) -> None:
         subject = "Thank You for Registering - Zen Archery Open Competition 2025"
         from_email = config.MAIL_DEFAULT_SENDER
         to_email = champion_user.email
@@ -135,9 +135,33 @@ class ChampionUserRepository:
                         free to reach out<br />
                     </td>
                     </tr>
+                    <!-- Payment Information -->
+                    <tr>
+                    <td style="padding: 20px; font-size: 14px; background-color: #f9f9f9;">
+                        <strong>Payment Information:</strong><br />
+                        If you’ve already completed your payment, no further action is needed — thank you!<br /><br />
+                        If not, you can always return to this email and make your payment using the secure link below:<br /><br />
+                        <a
+                        href="{authorization_url}"
+                        target="_blank"
+                        style="
+                            display: inline-block;
+                            padding: 10px 20px;
+                            background-color: #0e2b41;
+                            color: #ffffff;
+                            text-decoration: none;
+                            font-weight: bold;
+                            border-radius: 4px;
+                        "
+                        >
+                        🔗 Click here to make your payment
+                        </a><br /><br />
+                        To ensure a smooth check-in process, please make payment before arriving at the venue so our admin team can confirm your entry.
+                    </td>
+                    </tr>
                     <tr>
                     <td style="padding: 20px; font-size: 14px">
-                        For International Athletes: <br />
+                        <strong>For International Athletes:</strong><br />
                         If you are an international athlete, please click the link below
                         to fill out the visa form:
                         <br />
