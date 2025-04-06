@@ -18,17 +18,26 @@ class ChampionUserUseCase:
         # Generate unique id
         data['unique_id'] = str(uuid4())[:8]
         champion_user_data = ChampionUser(**data)
+        bson_data = champion_user_data.to_bson()
 
         # get champion user with email and see if it already exists 
         existing_champion_data = self.champion_user_repo.get_by_email(champion_user_email=champion_user_data.email)
         if existing_champion_data:
-            return False, {
-                "message": "Champion user already exists.",
-                "status": 409
+            # check if status is paymennt
+            if existing_champion_data.get('status') == 'payment':
+                return False, {
+                    "message": "Champion user already exists with payment status.",
+                    "status": 409
+                }
+            del bson_data['created_at']
+            
+            self.champion_user_repo.find_and_update_champion_user({"_id": existing_champion_data.get('_id')}, bson_data)
+            return True, {
+                "message": "Champion user updated successfully.",
+                "data": {
+                    "id": str(existing_champion_data.get('_id'))
+                }
             }
-        
-
-        bson_data = champion_user_data.to_bson()
 
         # Insert into database
         result_id = self.champion_user_repo.create_champion_user(bson_data)
@@ -72,11 +81,6 @@ class ChampionUserUseCase:
             if result_data.matched_count == 0:
                 return False, {
                     "message": "Champion user not found."
-                }
-            
-            if result_data.modified_count == 0:
-                return False, {
-                    "message": "No changes were made."
                 }
             
             return True, {

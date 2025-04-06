@@ -126,7 +126,7 @@ class ChampionUserRepository:
 
                     <!-- Bullet Points -->
                     <tr>
-                    <td style="padding: 10px 20px; font-size: 14px">
+                    <td style="padding: 10px 20px; font-size: 14px;">
                         Please keep this ID handy, as you may be asked to provide it
                         during the event.
                         <br />
@@ -137,7 +137,7 @@ class ChampionUserRepository:
                     </tr>
                     <!-- Payment Information -->
                     <tr>
-                    <td style="padding: 20px; font-size: 14px; background-color: #f9f9f9;">
+                    <td style="padding: 20px; font-size: 14px; color: #333;">
                         <strong>Payment Information:</strong><br />
                         If you’ve already completed your payment, no further action is needed — thank you!<br /><br />
                         If not, you can always return to this email and make your payment using the secure link below:<br /><br />
