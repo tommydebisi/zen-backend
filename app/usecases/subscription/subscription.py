@@ -1,5 +1,6 @@
 from app.database import SubscriptionRepository, UserRepository, PlanRepository, WalkInRepository
 from app.database.models.subscription import Subscription
+from app.database.models.walk_in import WalkIn
 from bson import ObjectId
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
@@ -15,7 +16,7 @@ class SubscriptionUseCase:
 
     def create_subscription(self, user_id: str, callback_url: str) -> Tuple[bool, Dict[str, Any]]:
         """Create a new subscription."""
-        # check if user exists 
+        # check if user exists
         user_data: Dict = self.user_repo.get_by_id(user_id=user_id)
         if not user_data:
             return False, {
@@ -219,20 +220,30 @@ class SubscriptionUseCase:
         entry_date = data.get('entry_date')
         full_name: str = data.get('fullName').strip()
 
-        # get the number of people with given entry date
-        number_of_people = self.walk_in_repo.get_walkin_count_pipeline(entry_date= datetime.strptime(entry_date, "%Y-%m-%dT%H:%M:%SZ"))
-        if len(number_of_people) != 0 and number_of_people[0].get('total_walkins') == 6:
-            return False, {
-                "message": "Fully booked for session",
-                "status": 400
-            }
-        
         list_of_names = full_name.split()
         first_name, last_name = "", ""
         if len(list_of_names) == 1:
             first_name = list_of_names[0]
         else:
             first_name, last_name = list_of_names[0], list_of_names[1]
+
+        walkin = WalkIn(**{
+            "email": email,
+            "entry_date": entry_date,
+            "amount": amount,
+            "first_name": first_name,
+            "last_name": last_name
+        })
+
+        # get the number of people with given entry date
+        number_of_people = self.walk_in_repo.get_walkin_count_pipeline(entry_date=walkin.entry_date)
+        if len(number_of_people) != 0 and number_of_people[0].get('total_walkins') == 6:
+            return False, {
+                "message": "Fully booked for session",
+                "status": 400
+            }
+        
+        
 
         response: Dict = paystack.transaction.initialize(
                 email=email,
@@ -247,7 +258,7 @@ class SubscriptionUseCase:
                     }
                 }
             )
-        
+
         if not response.get('status'):
                 return False, {
                     "message": response.get('message'),
