@@ -125,9 +125,10 @@ def init_app():
     archer_rank_repo = ArcherRankRepository(db_instance)
     payment_history_repo = PaymentHistoryRepository(db_instance)
     champion_user_repo = ChampionUserRepository(db_instance)
+    walk_in_repo = WalkInRepository(db_instance)
     
     # usecases
-    subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo)
+    subscription_use_case = SubscriptionUseCase(subscription_repo, user_repo, plan_repo, walk_in_repo)
     user_use_case = UserUseCase(user_repo, subscription_repo, plan_repo, archer_rank_repo, payment_history_repo)
     contact_us_use_case = ContactUsUseCase(contact_us_repo)
     token_use_case = TokenUseCase(token_repo)

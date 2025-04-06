@@ -95,7 +95,6 @@ def initialize_payment():
         entry_date = data.get('entry_date')
         full_name = data.get('fullName')
 
-
         if not callback_url:
             abort(400, 'call back url required')
         if not amount:

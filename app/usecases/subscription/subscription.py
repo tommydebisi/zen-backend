@@ -1,4 +1,4 @@
-from app.database import SubscriptionRepository, UserRepository, PlanRepository
+from app.database import SubscriptionRepository, UserRepository, PlanRepository, WalkInRepository
 from app.database.models.subscription import Subscription
 from bson import ObjectId
 from typing import Dict, Any, Optional, Tuple
@@ -7,7 +7,8 @@ from app.services.paystack.setup import paystack
 
 
 class SubscriptionUseCase:
-    def __init__(self, subscription_repo: SubscriptionRepository, user_repo: UserRepository, plan_repo: PlanRepository):
+    def __init__(self, subscription_repo: SubscriptionRepository, user_repo: UserRepository, plan_repo: PlanRepository, walk_in_repo: WalkInRepository):
+        self.walk_in_repo = walk_in_repo
         self.subscription_repo = subscription_repo
         self.user_repo = user_repo
         self.plan_repo = plan_repo
@@ -217,6 +218,14 @@ class SubscriptionUseCase:
         email = data.get('email')
         entry_date = data.get('entry_date')
         full_name: str = data.get('fullName').strip()
+
+        # get the number of people with given entry date
+        number_of_people = self.walk_in_repo.get_walkin_count_pipeline(entry_date= datetime.strptime(entry_date, "%Y-%m-%dT%H:%M:%SZ"))
+        if len(number_of_people) != 0 and number_of_people[0].get('total_walkins') == 6:
+            return False, {
+                "message": "Number of people exceeded",
+                "status": 400
+            }
         
         list_of_names = full_name.split()
         first_name, last_name = "", ""
