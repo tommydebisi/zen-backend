@@ -253,11 +253,7 @@ class SubscriptionUseCase:
                     "message": response.get('message'),
                     "status": 400
                 }
-        return False, {
-                "message": "Fully booked for session",
-                "status": 400
-            }
-        
+
         response_data: Dict = response.get('data')
         return True, {
                 "message": response.get('message'),
@@ -267,7 +263,6 @@ class SubscriptionUseCase:
                 },
                 "status": 200
             }
-    
 
     def verify_payment(self, reference: str) -> Tuple[bool, Dict[str, Any]]:
         """
