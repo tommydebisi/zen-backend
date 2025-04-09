@@ -24,7 +24,7 @@ class ChampionUserUseCase:
         existing_champion_data = self.champion_user_repo.get_by_email(champion_user_email=champion_user_data.email)
         if existing_champion_data:
             # check if status is paymennt
-            if existing_champion_data.get('status') == 'payment':
+            if existing_champion_data.get('status') == 'payment' or existing_champion_data.get('status') == 'paid':
                 return False, {
                     "message": "Registration completed",
                     "status": 409
