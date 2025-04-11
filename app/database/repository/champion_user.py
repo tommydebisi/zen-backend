@@ -303,11 +303,23 @@ class ChampionUserRepository:
         # ✅ Send the email
         email_msg.send()
 
-    def get_all_champion_users(self) -> List[Dict[str, Any]]:
-        """Fetch all users."""
-        pipeline = [
-            {
-                "$project": {
+    def get_all_champion_users(self, page: int, limit: int, sort: dict, search: str) -> Dict[str, Any]:
+        """Fetch paginated champion users with optional search."""
+        match_stage = {}
+
+        if search:
+            match_stage["$or"] = [
+                {"firstName": {"$regex": search, "$options": "i"}},
+                {"lastName": {"$regex": search, "$options": "i"}},
+            ]
+
+        pipeline = []
+
+        if match_stage:
+            pipeline.append({"$match": match_stage})
+
+        pipeline.append({
+            "$project": {
                 "_id": 0,
                 "id": "$_id",
                 "imageUrl": "$image_url",
@@ -318,8 +330,37 @@ class ChampionUserRepository:
                 "Category": 1,
                 "isOfficial": 1,
                 "PhoneNumber": 1,
-                }
             }
-        ]
+        })
 
-        return self.db.aggregate(ChampionUser.__name__, pipeline=pipeline)
+        # Sorting
+        sort_stage = {"$sort": sort}
+        pipeline.append(sort_stage)
+
+        # Count total docs
+        count_pipeline = pipeline.copy()
+        count_pipeline.append({"$count": "total"})
+        total_docs = list(self.db.aggregate(ChampionUser.__name__, count_pipeline))
+        total = total_docs[0]["total"] if total_docs else 0
+
+        # Pagination
+        skip = (page - 1) * limit
+        pipeline.append({"$skip": skip})
+        pipeline.append({"$limit": limit})
+
+        # Get paginated docs
+        docs = list(self.db.aggregate(ChampionUser.__name__, pipeline))
+
+        total_pages = (total + limit - 1) // limit
+        prev = page - 1 if page > 1 else None
+        next_page = page + 1 if page < total_pages else None
+
+        return {
+            "total": total,
+            "page": page,
+            "per_page": limit,
+            "prev": prev,
+            "next": next_page,
+            "total_page": total_pages,
+            "docs": docs
+        }

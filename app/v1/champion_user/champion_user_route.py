@@ -87,12 +87,22 @@ def initialize_champion_user_payment(champion_user_id: str):
 def get_all_champion_users():
     try:
         usecase: ChampionUserUseCase = champion_user_bp.champion_user_use_case
-        success, result_data = usecase.get_all_champion_users()
+
+        # Extract pagination and search query params
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 10))
+        sort_field = request.args.get("sort", "fullName")
+        sort_order = int(request.args.get("order", 1))  # 1 for asc, -1 for desc
+        search = request.args.get("search", "")
+
+        sort = {sort_field: sort_order}
+
+        success, result_data = usecase.get_all_champion_users(page, limit, sort, search)
 
         if not success:
-            return jsonify({"error": not success, "message": result_data.get("message")}), 400
+            return jsonify({"error": True, "message": result_data.get("message")}), 400
 
-        return jsonify({"error": not success, "message": result_data.get("message"), "data": result_data.get("data")}), 200
+        return jsonify({"error": False, "message": result_data.get("message"), "data": result_data.get("data")}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to get all Champion users: {str(e)}")
         abort(500, 'Failed to get all Champion users')

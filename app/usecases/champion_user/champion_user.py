@@ -157,13 +157,13 @@ class ChampionUserUseCase:
         except PyMongoError as e:
             raise RuntimeError(f"Failed to update Champion user: {str(e)}")
 
-    def get_all_champion_users(self) -> Tuple[bool, Dict[str, Any]]:
-        """Fetch all champion users."""
-        champion_users = self.champion_user_repo.get_all_champion_users()
+    def get_all_champion_users(self, page: int, limit: int, sort: dict, search: str) -> Tuple[bool, Dict[str, Any]]:
+        """Fetch paginated champion users with optional search."""
+        result = self.champion_user_repo.get_all_champion_users(page, limit, sort, search)
 
         return True, {
             "message": "Champion users found.",
-            "data": champion_users
+            "data": result
         }
     
     def update_champion_user_payment_status(self, champion_user_id: str) -> Tuple[bool, Dict[str, Any]]:
